@@ -4,6 +4,7 @@ Generate, downscale and restore pixel art images with SDXL.
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
 ## Description:
+Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
 
 This adds a custom node to save a picture as a Webp File and also adds a script to Comfy to drag and drop generated webpfiles into the UI to load the workflow.
 
@@ -17,8 +18,6 @@ In lossy mode, that's the other way around, where 100 is the biggest possible si
 
 There is an option to save a JPEG alongside the webp file.
 
-Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
-
 # Screenshot
 ![Example](./plugin.PNG)
 
@@ -31,6 +30,8 @@ Use git clone https://github.com/dimtoneff/ComfyUI-PixelArt-Detector in your Com
 Use LoRa: https://civitai.com/models/120096/pixel-art-xl
 
 A ComfyUI workflow should be embedded in the examples. Just drag and drop the image in the ComfyUI window. This extension should be installed, so it can read WEBP or JPEG Workflows.
+
+Set the resize inputs to 0 to disable upscaling.
 
 # Examples
 
