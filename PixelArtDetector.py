@@ -206,7 +206,6 @@ class PixelArtDetector:
             2
         )
         
-    # this is just for testing
     def saveImage(self, output, filename_prefix, prompt, webp_mode, save_exif, save_jpg, extra_pnginfo, compression):
         def map_filename(filename):
             prefix_len = len(os.path.basename(filename_prefix))
@@ -253,7 +252,7 @@ class PixelArtDetector:
         if webp_mode =="lossless":
             boolloss = True
         if webp_mode =="lossy":
-                boolloss = False
+            boolloss = False
 
         output.save(os.path.join(full_output_folder, file + ".webp"), method=6 , exif=imgexif, lossless=boolloss , quality=compression) #Save as webp - options to be determined
         if save_jpg =="enabled":

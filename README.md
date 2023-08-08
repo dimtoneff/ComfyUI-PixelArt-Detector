@@ -43,6 +43,10 @@ Reduced palette:
 
 ![Example](./examples/PixelArt_00021_.webp)
 
+![Example](./examples/Image_Reduced_256_00011_.webp)
+
+![Example](./examples/Image_Reduced_256_00004_.webp)
+
 Upscaled:
 
 ![Example](./examples/Image_Upscaled_00012_.webp)
