@@ -1,6 +1,6 @@
 """
 
-Custom node for SDXL in ComfyUI
+Custom nodes for SDXL in ComfyUI
 
 MIT License
 
@@ -88,7 +88,6 @@ class PixelArtDetectorToImage:
                 PILOutput = downscale.quantize(colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB')
                 print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
-            PILOutput = PILOutput.resize((512, 512), resample=Image.Resampling.NEAREST)
             PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
             PILOutput = torch.from_numpy(PILOutput)[None,]
             results.append(PILOutput)
