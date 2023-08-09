@@ -32,13 +32,74 @@ from PIL import Image
 import torchvision.transforms as transforms
 import numpy as np
 import scipy
+import torch
 from itertools import product
 from comfy.cli_args import args
 
 import os, json, time, folder_paths
 from datetime import datetime
 
-class PixelArtDetector:
+class PixelArtDetectorToImage:
+    """
+    A node that can output the processed PixelArt image to a torchTensor (IMAGE) for furhter processing
+    """
+    
+    def __init__(self):
+        self.CGREEN = '\033[92m'
+        self.CYELLOW = '\033[93m'
+        self.CEND = '\033[0m'
+    
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+                    "images": ("IMAGE",),
+                    "reduce_palette": (["enabled", "disabled"], {"default": "disabled"}),
+                    "reduce_palette_max_colors":("INT", {"default": 128, "min": 1, "max": 256, "step": 1},),
+                    },
+                }
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "process"
+
+    CATEGORY = "image/PixelArt"
+    OUTPUT_IS_LIST = (True,)
+
+    def process(self, images, reduce_palette, reduce_palette_max_colors):
+        results = list()
+        for image in images:
+            pilImage = Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)).convert("RGB")
+            
+            # Start timer
+            start = round(time.time()*1000)
+            
+            # Find 1:1 pixel scale
+            downscale = PixelArtDetectorSave.pixel_detect(pilImage)
+            
+            print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Size detected and reduced from {self.CYELLOW}{pilImage.width}{self.CEND}x{self.CYELLOW}{pilImage.height}{self.CEND} to {self.CYELLOW}{downscale.width}{self.CEND}x{self.CYELLOW}{downscale.height}{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
+                
+            PILOutput = downscale
+            
+            if reduce_palette =="enabled":
+                print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Reduce pallete max_colors: {self.CYELLOW}{reduce_palette_max_colors}{self.CEND}")
+                # Start timer
+                start = round(time.time()*1000)
+                # Reduce color palette using elbow method
+                best_k = PixelArtDetectorSave.determine_best_k(downscale, reduce_palette_max_colors)
+                PILOutput = downscale.quantize(colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB')
+                print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
+                
+            PILOutput = PILOutput.resize((512, 512), resample=Image.Resampling.NEAREST)
+            PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
+            PILOutput = torch.from_numpy(PILOutput)[None,]
+            results.append(PILOutput)
+                
+        return (results,)
+
+class PixelArtDetectorSave:
+    """
+    A node that can save the processed PixelArt to different formats (WEBP, JPEG etc.)
+    """
+    
     def __init__(self):
         self.type = "output"
         self.CGREEN = '\033[92m'
@@ -67,7 +128,7 @@ class PixelArtDetector:
     
     OUTPUT_NODE = True
     
-    CATEGORY = "image"
+    CATEGORY = "image/PixelArt"
     
 
     def process(self, images, reduce_palette, reduce_palette_max_colors, filename_prefix, webp_mode , compression, resize_w, resize_h, prompt=None, extra_pnginfo=None, save_jpg="disabled", save_exif="enabled"):
@@ -84,7 +145,7 @@ class PixelArtDetector:
             start = round(time.time()*1000)
                 
             # Find 1:1 pixel scale
-            downscale = self.pixel_detect(pilImage)
+            downscale = PixelArtDetectorSave.pixel_detect(pilImage)
                 
             print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Size detected and reduced from {self.CYELLOW}{pilImage.width}{self.CEND}x{self.CYELLOW}{pilImage.height}{self.CEND} to {self.CYELLOW}{downscale.width}{self.CEND}x{self.CYELLOW}{downscale.height}{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
@@ -95,7 +156,7 @@ class PixelArtDetector:
                 # Start timer
                 start = round(time.time()*1000)
                 # Reduce color palette using elbow method
-                best_k = self.determine_best_k(downscale, reduce_palette_max_colors)
+                best_k = PixelArtDetectorSave.determine_best_k(downscale, reduce_palette_max_colors)
                 PILOutput = downscale.quantize(colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB')
                 print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
@@ -116,7 +177,8 @@ class PixelArtDetector:
 
         return { "ui": { "images": results } }
 
-    def determine_best_k(self, image: Image, max_k: int):
+    @staticmethod
+    def determine_best_k(image: Image, max_k: int):
         # Convert the image to RGB mode
         image = image.convert("RGB")
 
@@ -147,7 +209,8 @@ class PixelArtDetector:
 
         return best_k
 
-    def kCentroid(self, image: Image, width: int, height: int, centroids: int):
+    @staticmethod
+    def kCentroid(image: Image, width: int, height: int, centroids: int):
         image = image.convert("RGB")
 
         # Create an empty array for the downscaled image
@@ -174,7 +237,8 @@ class PixelArtDetector:
 
         return Image.fromarray(downscaled, mode='RGB')
     
-    def pixel_detect(self, image: Image):
+    @staticmethod
+    def pixel_detect(image: Image):
         # [Astropulse]
         # Thanks to https://github.com/paultron for optimizing my garbage code 
         # I swapped the axis so they accurately reflect the horizontal and vertical scaling factor for images with uneven ratios
@@ -199,7 +263,7 @@ class PixelArtDetector:
         vspacing = np.diff(vpeaks)
 
         # Resize input image using kCentroid with the calculated horizontal and vertical factors
-        return self.kCentroid(
+        return PixelArtDetectorSave.kCentroid(
             image,
             round(image.width/np.median(hspacing)),
             round(image.height/np.median(vspacing)),
@@ -269,8 +333,10 @@ class PixelArtDetector:
 
             
 NODE_CLASS_MAPPINGS = {
-    "PixelArtDetector": PixelArtDetector
+    "PixelArtDetectorSave": PixelArtDetectorSave,
+    "PixelArtDetectorToImage": PixelArtDetectorToImage,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "PixelArtDetector": "PixelArt Detector"
+    "PixelArtDetectorSave": "PixelArt Detector (Save)",
+    "PixelArtDetectorToImage": "PixelArt Detector (Image)",
 }
