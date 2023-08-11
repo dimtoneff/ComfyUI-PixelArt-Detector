@@ -6,8 +6,6 @@ Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 ## Description:
 Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
 
-Included palettes from: https://lospec.com/palette-list. If you like some palette, download the 1px one and add it to the "ComfyUI-PixelArt-Detector\palettes\1x" directory.
-
 This adds 4 custom nodes:
 * PixelArt Detector (+Save) - this node is All in One reduce palette, resize, saving image node
 * PixelArt Detector (mage->) - this node will downscale and reduce the palette and forward the image to another node
@@ -33,6 +31,10 @@ There is an option to save a JPEG alongside the webp file.
 The grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality.xperiment or not use that option.
 
 ### Extra info about the "PixelArt Palette Converter" and "PixelArt Palette Loader" Nodes:
+
+Included palettes from: https://lospec.com/palette-list. 
+
+If you like some palette, download the 1px one and add it to the **"ComfyUI-PixelArt-Detector\palettes\1x"** directory.
 
 Here are some examples:
 
@@ -70,19 +72,13 @@ Set the resize inputs to 0 to disable upscaling in the "Save" node.
 
 Normal image:
 
-![Example](./examples/PixelArtSave_00005_.webp)
-
-![Example](./examples/PixelArt_00024_.jpeg)
+![Example](./examples/PixelArtSave_00005_.webp) ![Example](./examples/PixelArt_00024_.jpeg)
 
 Reduced palette:
 
-![Example](./examples/Image_00005_.webp)
+![Example](./examples/Image_00005_.webp) ![Example](./examples/PixelArt_00021_.webp)
 
-![Example](./examples/PixelArt_00021_.webp)
-
-![Example](./examples/Image_Reduced_256_00011_.webp)
-
-![Example](./examples/Image_Reduced_256_00004_.webp)
+![Example](./examples/Image_Reduced_256_00011_.webp) ![Example](./examples/Image_Reduced_256_00004_.webp)
 
 Upscaled:
 
