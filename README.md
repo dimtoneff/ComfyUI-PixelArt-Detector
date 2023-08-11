@@ -22,6 +22,20 @@ The nodes are able to manipulate the pixel art image in ways that it should look
 > [!IMPORTANT]
 > You can disable the embedded resize function in the nodes by setting W & H to 0.
 
+## Installation:
+
+Use git clone https://github.com/dimtoneff/ComfyUI-PixelArt-Detector in your ComfyUI custom_nodes directory
+
+# Usage
+
+Use LoRa: https://civitai.com/models/120096/pixel-art-xl
+
+Drag the workflow.json file in your ComfyUI
+
+Set the resize inputs to 0 to disable upscaling in the "Save" node.
+
+Reduce palettes or completely exchange palettes on your images.
+
 ### Extra info about the "PixelArt Detector (+Save)" Node:
 
 There is a compression slider and a lossy/lossless option for webp. The compression slider is a bit misleading.
@@ -62,18 +76,6 @@ Nodes:
 
 Workflow view:
 ![Example](./plugin.PNG)
-
-## Installation: 
-
-Use git clone https://github.com/dimtoneff/ComfyUI-PixelArt-Detector in your ComfyUI custom nodes directory
-
-# Usage
-
-Use LoRa: https://civitai.com/models/120096/pixel-art-xl
-
-Drag the workflow.json file in your ComfyUI
-
-Set the resize inputs to 0 to disable upscaling in the "Save" node.
 
 # Examples
 
