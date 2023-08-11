@@ -12,10 +12,10 @@ Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
 
 This adds 4 custom nodes:
-* PixelArt Detector (+Save) - this node is All in One reduce palette, resize, saving image node
-* PixelArt Detector (Image->) - this node will downscale and reduce the palette and forward the image to another node
-* PixelArt Palette Converter - this node will change the palette of your input. There are a couple of embedded palettes. Use the Palette Loader for more
-* PixelArt Palette Loader - this node comes with a lot of custom palettes which can be an input to the PixelArt Palette Converter "paletteList" input
+* __PixelArt Detector (+Save)__ - this node is All in One reduce palette, resize, saving image node
+* __PixelArt Detector (Image->)__ - this node will downscale and reduce the palette and forward the image to another node
+* __PixelArt Palette Converter__ - this node will change the palette of your input. There are a couple of embedded palettes. Use the Palette Loader for more
+* __PixelArt Palette Loader__ - this node comes with a lot of custom palettes which can be an input to the PixelArt Palette Converter "paletteList" input
 
 The plugin also adds a script to Comfy to drag and drop generated webp|jpeg files into the UI to load the workflows.
 
@@ -56,7 +56,7 @@ There is an option to save a JPEG alongside the webp file.
 
 ### Extra info about the "PixelArt Palette Converter" Node:
 
-The grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality.xperiment or not use that option.
+The grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality. Experiment or not use that option.
 
 ### Extra info about the "PixelArt Palette Converter" and "PixelArt Palette Loader" Nodes:
 
