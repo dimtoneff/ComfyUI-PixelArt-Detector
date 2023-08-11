@@ -65,6 +65,13 @@ Included palettes from: https://lospec.com/palette-list
 > [!IMPORTANT]
 > If you like some palette, download the 1px one and add it to the **"ComfyUI-PixelArt-Detector\palettes\1x"** directory.
 
+**GRIDS**
+
+* Install https://github.com/LEv145/images-grid-comfy-plugin
+* enable the render_all_palettes_in_grid
+* check my workflow: 
+
+
 Here are some examples:
 
 ![Example](./examples/Image_00169_.webp) ![Example](./examples/Image_00170_.webp)

@@ -26,7 +26,7 @@ SOFTWARE.
 
 """
 
-# implementation of https://github.com/Astropulse/pixeldetector to a ComfyUI extension node
+# implementation of https://github.com/Astropulse/pixeldetector to a ComfyUI extension node + other goodies
 # by dimtoneff
 from PIL import Image, ImageOps
 import numpy as np
@@ -42,31 +42,47 @@ from datetime import datetime
 from .pixelUtils import *
 
 class PixelArtLoadPalettes(nodes.LoadImage):
+    """
+    A node that scans images in a directory and returns the palette for the seleced image or for all images to display in a Grid
+    """    
     @classmethod
     def INPUT_TYPES(s):
-        input_dir = os.path.normpath(os.path.join(getPalettesPath(), "1x/"))
-        files = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))]
-        return {"required":
-                    {"image": (sorted(files), )},
+        files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), s.INPUT_DIR)))
+        return {"required": {
+                    "image": (files, ),
+                    "render_all_palettes_in_grid": (["true", "false"], {"default": "false"}),
+                    },
                 }
 
+    # Set the directory where we get the palettes from
+    INPUT_DIR = "1x/"
     CATEGORY = "image/PixelArt"
     RETURN_TYPES = ("LIST",)
+    OUTPUT_IS_LIST = (True,)
 
     FUNCTION = "load_image"
-    def load_image(self, image):
-        image_path = os.path.normpath(os.path.join(getPalettesPath(), "1x/", image))
-        i = Image.open(image_path)
-        i = ImageOps.exif_transpose(i)
-        
-        image = i.convert("P")
-        palette = image.getpalette()
-        #print(palette)
-        return (palette,)
+    def load_image(self, image, render_all_palettes_in_grid):
+        def getImagePalette(imgName):
+            image_path = os.path.normpath(os.path.join(getPalettesPath(), self.INPUT_DIR, imgName))
+            i = Image.open(image_path)
+            i = ImageOps.exif_transpose(i)
+            image = i.convert("P")
+            return image.getpalette()
+            
+        palettes = list()
+        if (render_all_palettes_in_grid == "true"):
+            files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), self.INPUT_DIR)))
+            for file in files:
+                palettes.append(getImagePalette(file))
+        else:
+            palettes.append(getImagePalette(image))
+
+        print(palettes)
+        return (palettes,)
     
     @classmethod
     def IS_CHANGED(s, image):
-        image_path = os.path.normpath(os.path.join(getPalettesPath(), "1x/", image))
+        image_path = os.path.normpath(os.path.join(getPalettesPath(), s.INPUT_DIR, image))
         m = hashlib.sha256()
         with open(image_path, 'rb') as f:
             m.update(f.read())
@@ -74,7 +90,7 @@ class PixelArtLoadPalettes(nodes.LoadImage):
     
     @classmethod
     def VALIDATE_INPUTS(s, image):
-        image_path = os.path.normpath(os.path.join(getPalettesPath(), "1x/", image))
+        image_path = os.path.normpath(os.path.join(getPalettesPath(), s.INPUT_DIR, image))
         if not Path(image_path).is_file():
             return "Invalid image file: {}".format(image)
 
@@ -134,6 +150,7 @@ class PixelArtDetectorConverter():
             palette = self.GAME_BOY
 
         if paletteList is not None:
+            print(paletteList)
             palette = paletteList
 
         palIm = Image.new('P', (1,1))

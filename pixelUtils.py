@@ -22,6 +22,9 @@ to_3tuple = _ntuple(3)
 to_4tuple = _ntuple(4)
 to_ntuple = _ntuple
 
+def scanFilesInDir(input_dir):
+    return sorted([f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))])
+    
 def getPalettesPath():
     nodes_path = folder_paths.get_folder_paths("custom_nodes")
     full_pallete_path = os.path.normpath(os.path.join(nodes_path[0], "ComfyUI-PixelArt-Detector/palettes/"))
