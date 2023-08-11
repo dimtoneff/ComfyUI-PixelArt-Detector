@@ -1,5 +1,6 @@
 # ComfyUI PixelArt Detector v1.0
 Generate, downscale and restore pixel art images with SDXL.
+![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
