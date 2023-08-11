@@ -3,6 +3,9 @@ Generate, downscale and restore pixel art images with SDXL.
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
+> [!IMPORTANT]
+> If you have an older version of the nodes, delete the node and add it again. Location of the nodes: "Image/PixelArt"
+
 ## Description:
 Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
 
@@ -15,6 +18,9 @@ This adds 4 custom nodes:
 The plugin also adds a script to Comfy to drag and drop generated webp|jpeg files into the UI to load the workflows.
 
 The nodes are able to manipulate the pixel art image in ways that it should look pixel perfect (downscales, changes palette, upscales etc.).
+
+> [!IMPORTANT]
+> You can disable the embedded resize function in the nodes by setting W & H to 0.
 
 ### Extra info about the "PixelArt Detector (+Save)" Node:
 
@@ -32,9 +38,10 @@ The grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixe
 
 ### Extra info about the "PixelArt Palette Converter" and "PixelArt Palette Loader" Nodes:
 
-Included palettes from: https://lospec.com/palette-list. 
+Included palettes from: https://lospec.com/palette-list
 
-If you like some palette, download the 1px one and add it to the **"ComfyUI-PixelArt-Detector\palettes\1x"** directory.
+> [!IMPORTANT]
+> If you like some palette, download the 1px one and add it to the **"ComfyUI-PixelArt-Detector\palettes\1x"** directory.
 
 Here are some examples:
 
