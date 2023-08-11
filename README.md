@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector
+# ComfyUI PixelArt Detector v1.0
 Generate, downscale and restore pixel art images with SDXL.
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
@@ -6,11 +6,19 @@ Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 ## Description:
 Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
 
-This adds 2 custom nodes (Image & Save nodes): the "Image" node can manipulate the image and forward it to another node AND the "Save" node to manipulate the image and save it as a Webp (+JPEG) File. It also adds a script to Comfy to drag and drop generated webp|jpeg files into the UI to load the workflows.
+Included palettes from: https://lospec.com/palette-list. If you like some palette, download the 1px one and add it to the "ComfyUI-PixelArt-Detector\palettes\1x" directory.
+
+This adds 4 custom nodes:
+* PixelArt Detector (+Save) - this node is All in One reduce palette, resize, saving image node
+* PixelArt Detector (mage->) - this node will downscale and reduce the palette and forward the image to another node
+* PixelArt Palette Converter - this node will change the palette of your input. There are a couple of embedded palettes. For more, please use the Palette Loader
+* PixelArt Palette Loader - this node comes with a lot of custom palettes which can be an input to the PixelArt Palette Converter "paletteList" input
+
+The plugin also adds a script to Comfy to drag and drop generated webp|jpeg files into the UI to load the workflows.
 
 The nodes are able to manipulate the pixel art image in ways that it should look pixel perfect (downscales, changes palette, upscales etc.).
 
-Extra info about the "Save" Node:
+### Extra info about the "PixelArt Detector (+Save)" Node:
 
 There is a compression slider and a lossy/lossless option for webp. The compression slider is a bit misleading.
 
@@ -19,6 +27,24 @@ In lossless mode, it only affects the "effort" taken to compress where 100 is th
 In lossy mode, that's the other way around, where 100 is the biggest possible size with the least compression and 1 is the smallest possible size with maximum compression.
 
 There is an option to save a JPEG alongside the webp file.
+
+### Extra info about the "PixelArt Palette Converter" Node:
+
+The grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality.xperiment or not use that option.
+
+### Extra info about the "PixelArt Palette Converter" and "PixelArt Palette Loader" Nodes:
+
+Here are some examples:
+
+![Example](./examples/Image_00169_.webp) ![Example](./examples/Image_00170_.webp)
+
+![Example](./examples/Image_00171_.webp) ![Example](./examples/Image_00172_.webp)
+
+![Example](./examples/Image_00048_.webp) ![Example](./examples/Image_00049_.webp)
+
+![Example](./examples/Image_00050_.webp) ![Example](./examples/Image_00051_.webp)
+
+![Example](./examples/Image_00053_.webp) ![Example](./examples/Image_00057_.webp)
 
 # Screenshot
 
@@ -70,3 +96,5 @@ Big thanks to https://github.com/Astropulse/pixeldetector for the main code.
 Big thanks to https://github.com/Kaharos94/ComfyUI-Saveaswebp for the webp saving code.
 
 Big thanks to https://github.com/paultron for numpy-ifying the downscale calculation and making it tons faster.
+
+Big thanks to https://lospec.com/palette-list and the creators of the awesome palettes.

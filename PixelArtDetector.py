@@ -28,16 +28,143 @@ SOFTWARE.
 
 # implementation of https://github.com/Astropulse/pixeldetector to a ComfyUI extension node
 # by dimtoneff
-from PIL import Image
-import torchvision.transforms as transforms
+from PIL import Image, ImageOps
 import numpy as np
-import scipy
+import hashlib
+import nodes
+
 import torch
-from itertools import product
+from pathlib import Path
 from comfy.cli_args import args
 
 import os, json, time, folder_paths
 from datetime import datetime
+from .pixelUtils import *
+
+class PixelArtLoadPalettes(nodes.LoadImage):
+    @classmethod
+    def INPUT_TYPES(s):
+        input_dir = os.path.normpath(os.path.join(getPalettesPath(), "1x/"))
+        files = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))]
+        return {"required":
+                    {"image": (sorted(files), )},
+                }
+
+    CATEGORY = "image/PixelArt"
+    RETURN_TYPES = ("LIST",)
+
+    FUNCTION = "load_image"
+    def load_image(self, image):
+        image_path = os.path.normpath(os.path.join(getPalettesPath(), "1x/", image))
+        i = Image.open(image_path)
+        i = ImageOps.exif_transpose(i)
+        
+        image = i.convert("P")
+        palette = image.getpalette()
+        #print(palette)
+        return (palette,)
+    
+    @classmethod
+    def IS_CHANGED(s, image):
+        image_path = os.path.normpath(os.path.join(getPalettesPath(), "1x/", image))
+        m = hashlib.sha256()
+        with open(image_path, 'rb') as f:
+            m.update(f.read())
+        return m.digest().hex()
+    
+    @classmethod
+    def VALIDATE_INPUTS(s, image):
+        image_path = os.path.normpath(os.path.join(getPalettesPath(), "1x/", image))
+        if not Path(image_path).is_file():
+            return "Invalid image file: {}".format(image)
+
+        return True
+
+class PixelArtDetectorConverter():
+    """
+    A node that can convert images to some fan favorite palettes: NES, GAME BOY etc.
+    """
+    
+    def __init__(self):
+        self.CGREEN = '\033[92m'
+        self.CYELLOW = '\033[93m'
+        self.CEND = '\033[0m'
+        self.GAME_BOY_PALETTE_TUPLES = [(15,56,15),(48,98,48),(139,172,15),(155,188,15)]#,(202,220,159)
+        self.NES_PALETTE_TUPLES      = [(124,124,124),(0,0,252),(0,0,188),(68,40,188),(148,0,132),(168,0,32),(168,16,0),(136,20,0),(80,48,0),(0,120,0),(0,104,0),(0,88,0),
+                                        (0,64,88),(0,0,0),(0,0,0),(0,0,0),(188,188,188),(0,120,248),(0,88,248),(104,68,252),(216,0,204),(228,0,88),(248,56,0),(228,92,16),
+                                        (172,124,0),(0,184,0),(0,168,0),(0,168,68),(0,136,136),(0,0,0),(0,0,0),(0,0,0),(248,248,248),(60,188,252),(104,136,252),(152,120,248),
+                                        (248,120,248),(248,88,152),(248,120,88),(252,160,68),(248,184,0),(184,248,24),(88,216,84),(88,248,152),(0,232,216),(120,120,120),
+                                        (0,0,0),(0,0,0),(252,252,252),(164,228,252),(184,184,248),(216,184,248),(248,184,248),(248,164,192),(240,208,176),(252,224,168),
+                                        (248,216,120),(216,248,120),(184,248,184),(184,248,216),(0,252,252),(248,216,248),(0,0,0),(0,0,0)
+                                       ]
+        self.GAME_BOY = [15,56,15,48,98,48,139,172,15,155,188,15]
+        self.NES = [
+            124,124,124,0,0,252,0,0,188,68,40,188,148,0,132,168,0,32,168,16,0,136,20,0,80,48,0,0,120,0,0,104,0,0,88,0,0,64,88,0,0,0,0,0,0,0,0,0,188,188,188,0,120,248,
+            0,88,248,104,68,252,216,0,204,228,0,88,248,56,0,228,92,16,172,124,0,0,184,0,0,168,0,0,168,68,0,136,136,0,0,0,0,0,0,0,0,0,248,248,248,60,188,252,104,136,252,
+            152,120,248,248,120,248,248,88,152,248,120,88,252,160,68,248,184,0,184,248,24,88,216,84,88,248,152,0,232,216,120,120,120,0,0,0,0,0,0,252,252,252,164,228,252,
+            184,184,248,216,184,248,248,184,248,248,164,192,240,208,176,252,224,168,248,216,120,216,248,120,184,248,184,184,248,216,0,252,252,248,216,248,0,0,0,0,0,0
+        ]
+    
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+                    "images": ("IMAGE",),
+                    "palette": (["NES", "GAMEBOY"], {"default": "GAMEBOY"}),
+                    "pixelize": (["Image.quantize", "Grid.pixelate"], {"default": "Image.quantize"}),
+                    "grid_size":("INT", {"default": 2, "min": 1, "max": 32, "step": 1},),
+                    "resize_w":("INT", {"default": 512, "min": 128, "max": 2048, "step": 1},),
+                    "resize_h":("INT", {"default": 512, "min": 128, "max": 2048, "step": 1},),
+                    },
+                "optional": {
+                    "paletteList": ("LIST", {"forceInput": True}),
+                    },                
+                }
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "process"
+
+    CATEGORY = "image/PixelArt"
+    OUTPUT_IS_LIST = (True,)
+
+    def process(self, images, palette, pixelize, grid_size, resize_w, resize_h, paletteList=None):
+
+        if (palette == "NES"):
+            palette = self.NES
+        else:
+            palette = self.GAME_BOY
+
+        if paletteList is not None:
+            palette = paletteList
+
+        palIm = Image.new('P', (1,1))
+        palIm.putpalette(palette)
+        #print(palIm.getpalette())
+        
+        results = list()
+        for image in images:
+            pilImage = Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)).convert("RGB")
+            
+            # Start timer
+            start = round(time.time()*1000)
+            
+            if (pixelize == "Image.quantize"):
+                PILOutput = pilImage.quantize(palette=palIm, dither=Image.Dither.NONE).convert('RGB')
+            else:
+                PILOutput = pixelate(pilImage, grid_size, paletteToTuples(palette, 3))
+
+            print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Image converted in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
+            
+            # resize
+            if resize_w >= 128 and resize_h >= 128:
+                PILOutput = PILOutput.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
+
+            # Convert to torch.Tensor            
+            PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
+            PILOutput = torch.from_numpy(PILOutput)[None,]
+            results.append(PILOutput)
+                
+        return (results,)
+
 
 class PixelArtDetectorToImage:
     """
@@ -73,7 +200,7 @@ class PixelArtDetectorToImage:
             start = round(time.time()*1000)
             
             # Find 1:1 pixel scale
-            downscale = PixelArtDetectorSave.pixel_detect(pilImage)
+            downscale = pixel_detect(pilImage)
             
             print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Size detected and reduced from {self.CYELLOW}{pilImage.width}{self.CEND}x{self.CYELLOW}{pilImage.height}{self.CEND} to {self.CYELLOW}{downscale.width}{self.CEND}x{self.CYELLOW}{downscale.height}{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
@@ -84,7 +211,7 @@ class PixelArtDetectorToImage:
                 # Start timer
                 start = round(time.time()*1000)
                 # Reduce color palette using elbow method
-                best_k = PixelArtDetectorSave.determine_best_k(downscale, reduce_palette_max_colors)
+                best_k = determine_best_k(downscale, reduce_palette_max_colors)
                 PILOutput = downscale.quantize(colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB')
                 print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
@@ -131,9 +258,6 @@ class PixelArtDetectorSave:
     
 
     def process(self, images, reduce_palette, reduce_palette_max_colors, filename_prefix, webp_mode , compression, resize_w, resize_h, prompt=None, extra_pnginfo=None, save_jpg="disabled", save_exif="enabled"):
-        # Tensor to PIL
-        def tensor2pil(image):
-            return Image.fromarray(np.clip(255. * image.cpu().numpy().squeeze(), 0, 255).astype(np.uint8))
         
         results = list()
         for image in images:
@@ -144,7 +268,7 @@ class PixelArtDetectorSave:
             start = round(time.time()*1000)
                 
             # Find 1:1 pixel scale
-            downscale = PixelArtDetectorSave.pixel_detect(pilImage)
+            downscale = pixel_detect(pilImage)
                 
             print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Size detected and reduced from {self.CYELLOW}{pilImage.width}{self.CEND}x{self.CYELLOW}{pilImage.height}{self.CEND} to {self.CYELLOW}{downscale.width}{self.CEND}x{self.CYELLOW}{downscale.height}{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
@@ -154,9 +278,7 @@ class PixelArtDetectorSave:
                 print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Reduce pallete max_colors: {self.CYELLOW}{reduce_palette_max_colors}{self.CEND}")
                 # Start timer
                 start = round(time.time()*1000)
-                # Reduce color palette using elbow method
-                best_k = PixelArtDetectorSave.determine_best_k(downscale, reduce_palette_max_colors)
-                PILOutput = downscale.quantize(colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB')
+                PILOutput, best_k = reducePalette(downscale, reduce_palette_max_colors)
                 print(f"### {self.CGREEN}[PixelArtDetector]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
             # resize
@@ -175,99 +297,6 @@ class PixelArtDetectorSave:
             ))
 
         return { "ui": { "images": results } }
-
-    @staticmethod
-    def determine_best_k(image: Image, max_k: int):
-        # Convert the image to RGB mode
-        image = image.convert("RGB")
-
-        # Prepare arrays for distortion calculation
-        pixels = np.array(image)
-        pixel_indices = np.reshape(pixels, (-1, 3))
-
-        # Calculate distortion for different values of k
-        distortions = []
-        for k in range(1, max_k + 1):
-            quantized_image = image.quantize(colors=k, method=0, kmeans=k, dither=0)
-            centroids = np.array(quantized_image.getpalette()[:k * 3]).reshape(-1, 3)
-            
-            # Calculate distortions
-            distances = np.linalg.norm(pixel_indices[:, np.newaxis] - centroids, axis=2)
-            min_distances = np.min(distances, axis=1)
-            distortions.append(np.sum(min_distances ** 2))
-
-        # Calculate the rate of change of distortions
-        rate_of_change = np.diff(distortions) / np.array(distortions[:-1])
-        
-        # Find the elbow point (best k value)
-        if len(rate_of_change) == 0:
-            best_k = 2
-        else:
-            elbow_index = np.argmax(rate_of_change) + 1
-            best_k = elbow_index + 2
-
-        return best_k
-
-    @staticmethod
-    def kCentroid(image: Image, width: int, height: int, centroids: int):
-        image = image.convert("RGB")
-
-        # Create an empty array for the downscaled image
-        downscaled = np.zeros((height, width, 3), dtype=np.uint8)
-
-        # Calculate the scaling factors
-        wFactor = image.width/width
-        hFactor = image.height/height
-
-        # Iterate over each tile in the downscaled image
-        for x, y in product(range(width), range(height)):
-            # Crop the tile from the original image
-            tile = image.crop((x*wFactor, y*hFactor, (x*wFactor)+wFactor, (y*hFactor)+hFactor))
-
-            # Quantize the colors of the tile using k-means clustering
-            tile = tile.quantize(colors=centroids, method=1, kmeans=centroids).convert("RGB")
-
-            # Get the color counts and find the most common color
-            color_counts = tile.getcolors()
-            most_common_color = max(color_counts, key=lambda x: x[0])[1]
-
-            # Assign the most common color to the corresponding pixel in the downscaled image
-            downscaled[y, x, :] = most_common_color
-
-        return Image.fromarray(downscaled, mode='RGB')
-    
-    @staticmethod
-    def pixel_detect(image: Image):
-        # [Astropulse]
-        # Thanks to https://github.com/paultron for optimizing my garbage code 
-        # I swapped the axis so they accurately reflect the horizontal and vertical scaling factor for images with uneven ratios
-
-        # Convert the image to a NumPy array
-        npim = np.array(image)[..., :3]
-
-        # Compute horizontal differences between pixels
-        hdiff = np.sqrt(np.sum((npim[:, :-1, :] - npim[:, 1:, :])**2, axis=2))
-        hsum = np.sum(hdiff, 0)
-
-        # Compute vertical differences between pixels
-        vdiff = np.sqrt(np.sum((npim[:-1, :, :] - npim[1:, :, :])**2, axis=2))
-        vsum = np.sum(vdiff, 1)
-
-        # Find peaks in the horizontal and vertical sums
-        hpeaks, _ = scipy.signal.find_peaks(hsum, distance=1, height=0.0)
-        vpeaks, _ = scipy.signal.find_peaks(vsum, distance=1, height=0.0)
-        
-        # Compute spacing between the peaks
-        hspacing = np.diff(hpeaks)
-        vspacing = np.diff(vpeaks)
-
-        # Resize input image using kCentroid with the calculated horizontal and vertical factors
-        return PixelArtDetectorSave.kCentroid(
-            image,
-            round(image.width/np.median(hspacing)),
-            round(image.height/np.median(vspacing)),
-            2
-        )
         
     def saveImage(self, output, filename_prefix, prompt, webp_mode, save_exif, save_jpg, extra_pnginfo, compression):
         def map_filename(filename):
@@ -334,8 +363,12 @@ class PixelArtDetectorSave:
 NODE_CLASS_MAPPINGS = {
     "PixelArtDetectorSave": PixelArtDetectorSave,
     "PixelArtDetectorToImage": PixelArtDetectorToImage,
+    "PixelArtDetectorConverter": PixelArtDetectorConverter,
+    "PixelArtLoadPalettes": PixelArtLoadPalettes,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "PixelArtDetectorSave": "PixelArt Detector (Save)",
-    "PixelArtDetectorToImage": "PixelArt Detector (Image)",
+    "PixelArtDetectorSave": "PixelArt Detector (+Save)",
+    "PixelArtDetectorToImage": "PixelArt Detector (Image->)",
+    "PixelArtDetectorConverter": "PixelArt Palette Converter",
+    "PixelArtLoadPalettes": "PixelArt Palette Loader"
 }

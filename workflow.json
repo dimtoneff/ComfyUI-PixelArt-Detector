@@ -1,6 +1,6 @@
 {
-  "last_node_id": 99,
-  "last_link_id": 167,
+  "last_node_id": 111,
+  "last_link_id": 192,
   "nodes": [
     {
       "id": 14,
@@ -270,7 +270,7 @@
       "title": "Positive Prompt (Text)",
       "properties": {},
       "widgets_values": [
-        "beautiful young girl infront of a waterfall, bikini, pixelart"
+        "beautiful young girl on the beach, bikini, blue sky, pixelart"
       ],
       "color": "#232",
       "bgcolor": "#353"
@@ -305,7 +305,7 @@
       "widgets_values": [
         1024,
         1024,
-        1
+        4
       ],
       "color": "#323",
       "bgcolor": "#535"
@@ -430,6 +430,38 @@
       "bgcolor": "#653"
     },
     {
+      "id": 110,
+      "type": "PixelArtLoadPalettes",
+      "pos": [
+        1144,
+        158
+      ],
+      "size": {
+        "0": 315,
+        "1": 58
+      },
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "LIST",
+          "type": "LIST",
+          "links": [
+            190
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtLoadPalettes"
+      },
+      "widgets_values": [
+        "pastel-qt-1x.png"
+      ]
+    },
+    {
       "id": 49,
       "type": "LoraLoader",
       "pos": [
@@ -441,7 +473,7 @@
         "1": 126
       },
       "flags": {},
-      "order": 13,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
@@ -497,7 +529,7 @@
         "1": 54
       },
       "flags": {},
-      "order": 14,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -535,7 +567,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "beautiful young girl infront of a waterfall, bikini, pixelart"
+        "beautiful young girl on the beach, bikini, blue sky, pixelart"
       ],
       "color": "#232",
       "bgcolor": "#353"
@@ -552,7 +584,7 @@
         "1": 54
       },
       "flags": {},
-      "order": 15,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -607,7 +639,7 @@
         "1": 538
       },
       "flags": {},
-      "order": 16,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -682,8 +714,8 @@
       },
       "widgets_values": [
         "enable",
-        929052631753553,
-        "randomize",
+        485461415230978,
+        "fixed",
         20,
         8,
         "euler",
@@ -707,7 +739,7 @@
         "1": 50
       },
       "flags": {},
-      "order": 17,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
@@ -727,9 +759,9 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            164,
-            165,
-            166
+            185,
+            186,
+            188
           ],
           "shape": 3,
           "slot_index": 0
@@ -742,57 +774,15 @@
       "bgcolor": "#593930"
     },
     {
-      "id": 54,
-      "type": "ImageScale",
-      "pos": [
-        1095,
-        4
-      ],
-      "size": {
-        "0": 315,
-        "1": 130
-      },
-      "flags": {},
-      "order": 18,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 164
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            62
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageScale"
-      },
-      "widgets_values": [
-        "nearest-exact",
-        128,
-        128,
-        "disabled"
-      ]
-    },
-    {
-      "id": 97,
+      "id": 106,
       "type": "PixelArtDetectorSave",
       "pos": [
-        1400,
-        -959
+        1248,
+        -1108
       ],
       "size": {
-        "0": 315,
-        "1": 462
+        "0": 390.8402404785156,
+        "1": 667.4219360351562
       },
       "flags": {},
       "order": 19,
@@ -801,14 +791,14 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 165
+          "link": 185
         }
       ],
       "properties": {
         "Node name for S&R": "PixelArtDetectorSave"
       },
       "widgets_values": [
-        "%date%/PixelArtSave",
+        "%date%/PixelArt",
         "disabled",
         128,
         "lossy",
@@ -820,11 +810,11 @@
       ]
     },
     {
-      "id": 98,
+      "id": 107,
       "type": "PixelArtDetectorToImage",
       "pos": [
-        1400,
-        -228
+        1401,
+        -259
       ],
       "size": {
         "0": 315,
@@ -837,7 +827,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 166
+          "link": 186
         }
       ],
       "outputs": [
@@ -845,7 +835,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            167
+            191
           ],
           "shape": 6,
           "slot_index": 0
@@ -856,28 +846,33 @@
       },
       "widgets_values": [
         "enabled",
-        16
+        128
       ]
     },
     {
-      "id": 55,
-      "type": "ImageScale",
+      "id": 108,
+      "type": "PixelArtDetectorConverter",
       "pos": [
-        1096,
-        175
+        1516,
+        113
       ],
       "size": {
         "0": 315,
-        "1": 130
+        "1": 174
       },
       "flags": {},
       "order": 21,
       "mode": 0,
       "inputs": [
         {
-          "name": "image",
+          "name": "images",
           "type": "IMAGE",
-          "link": 62
+          "link": 188
+        },
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "link": 190
         }
       ],
       "outputs": [
@@ -885,7 +880,50 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            63
+            189
+          ],
+          "shape": 6,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtDetectorConverter"
+      },
+      "widgets_values": [
+        "GAMEBOY",
+        "Image.quantize",
+        4,
+        512,
+        512
+      ]
+    },
+    {
+      "id": 111,
+      "type": "ImageScale",
+      "pos": [
+        1794,
+        -377
+      ],
+      "size": {
+        "0": 315,
+        "1": 130
+      },
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 191
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            192
           ],
           "shape": 3,
           "slot_index": 0
@@ -896,30 +934,30 @@
       },
       "widgets_values": [
         "nearest-exact",
-        1024,
-        1024,
+        512,
+        512,
         "disabled"
       ]
     },
     {
-      "id": 99,
+      "id": 109,
       "type": "Save_as_webp",
       "pos": [
-        1795,
-        -632
+        1945,
+        -42
       ],
       "size": {
-        "0": 315,
-        "1": 390
+        "0": 391.73297119140625,
+        "1": 592.7125244140625
       },
       "flags": {},
-      "order": 22,
+      "order": 23,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 167
+          "link": 189
         }
       ],
       "properties": {
@@ -935,32 +973,31 @@
       ]
     },
     {
-      "id": 53,
+      "id": 99,
       "type": "Save_as_webp",
       "pos": [
-        1502,
-        -9
+        2232,
+        -902
       ],
-      "size": {
-        "0": 605.055908203125,
-        "1": 774.2435302734375
-      },
+      "size": [
+        429.063372558594,
+        670.9712297973634
+      ],
       "flags": {},
-      "order": 23,
+      "order": 24,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 63
+          "link": 192
         }
       ],
-      "title": "UPSCALED",
       "properties": {
         "Node name for S&R": "Save_as_webp"
       },
       "widgets_values": [
-        "%date%/Image_Upscaled",
+        "%date%/Image",
         "lossy",
         80,
         "disabled",
@@ -1075,22 +1112,6 @@
       "VAE"
     ],
     [
-      62,
-      54,
-      0,
-      55,
-      0,
-      "IMAGE"
-    ],
-    [
-      63,
-      55,
-      0,
-      53,
-      0,
-      "IMAGE"
-    ],
-    [
       70,
       10,
       0,
@@ -1099,32 +1120,56 @@
       "LATENT"
     ],
     [
-      164,
+      185,
       17,
       0,
-      54,
+      106,
       0,
       "IMAGE"
     ],
     [
-      165,
+      186,
       17,
       0,
-      97,
+      107,
       0,
       "IMAGE"
     ],
     [
-      166,
+      188,
       17,
       0,
-      98,
+      108,
       0,
       "IMAGE"
     ],
     [
-      167,
-      98,
+      189,
+      108,
+      0,
+      109,
+      0,
+      "IMAGE"
+    ],
+    [
+      190,
+      110,
+      0,
+      108,
+      1,
+      "LIST"
+    ],
+    [
+      191,
+      107,
+      0,
+      111,
+      0,
+      "IMAGE"
+    ],
+    [
+      192,
+      111,
       0,
       99,
       0,
