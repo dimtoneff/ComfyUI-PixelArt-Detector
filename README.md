@@ -11,8 +11,8 @@ Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetecto
 
 This adds 4 custom nodes:
 * PixelArt Detector (+Save) - this node is All in One reduce palette, resize, saving image node
-* PixelArt Detector (mage->) - this node will downscale and reduce the palette and forward the image to another node
-* PixelArt Palette Converter - this node will change the palette of your input. There are a couple of embedded palettes. For more, please use the Palette Loader
+* PixelArt Detector (Image->) - this node will downscale and reduce the palette and forward the image to another node
+* PixelArt Palette Converter - this node will change the palette of your input. There are a couple of embedded palettes. Use the Palette Loader for more
 * PixelArt Palette Loader - this node comes with a lot of custom palettes which can be an input to the PixelArt Palette Converter "paletteList" input
 
 The plugin also adds a script to Comfy to drag and drop generated webp|jpeg files into the UI to load the workflows.
@@ -24,7 +24,13 @@ The nodes are able to manipulate the pixel art image in ways that it should look
 
 ## Installation:
 
-Use git clone https://github.com/dimtoneff/ComfyUI-PixelArt-Detector in your ComfyUI custom_nodes directory
+To use these nodes, simply open a terminal in ComfyUI/custom_nodes/ and run:
+
+```
+git clone https://github.com/dimtoneff/ComfyUI-PixelArt-Detector
+```
+
+Restart ComfyUI afterwards.
 
 # Usage
 
