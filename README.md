@@ -1,12 +1,12 @@
 # ComfyUI PixelArt Detector v1.0
-Generate, downscale and restore pixel art images with SDXL.
+Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 ![](./examples/Image_00135_.webp) ![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
 > [!IMPORTANT]
-> If you have an older version of the nodes, delete the node and add it again. Location of the nodes: "Image/PixelArt"
+> If you have an older version of the nodes, delete the node and add it again. Location of the nodes: "Image/PixelArt". I've added some example workflow in the workflow.json. The example images might have outdated workflows with older node versions embedded inside.
 
 ## Description:
 Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
