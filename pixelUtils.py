@@ -1,9 +1,9 @@
 import collections.abc
 import numpy as np
 import torch
-import os, time, folder_paths
+import os, time, folder_paths, math
 from pathlib import Path
-from PIL import Image, ImageStat
+from PIL import Image, ImageStat, ImageFont, ImageOps, ImageDraw
 from collections import abc
 from itertools import repeat, product
 import scipy
@@ -24,6 +24,36 @@ to_ntuple = _ntuple
 
 def scanFilesInDir(input_dir):
     return sorted([f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))])
+
+def getFont(size: int = 10, fontName: str = "Roboto-Regular.ttf"):
+    nodes_path = folder_paths.get_folder_paths("custom_nodes")
+    font_path = os.path.normpath(os.path.join(nodes_path[0], "ComfyUI-PixelArt-Detector/fonts/", fontName))
+    return ImageFont.truetype(str(font_path), size=size)
+
+def transformPalette(palette: list, output: str = "image"):
+    match output:
+        case "image":
+            palIm = Image.new('P', (1,1))
+            palIm.putpalette(palette)
+            return palIm
+        case "tuple":
+            return paletteToTuples(palette, 3)
+        case _: # default case
+            return palette
+
+def drawTextInImage(image: Image, text, fontSize: int = 26, fontColor = (255, 0, 0), strokeColor = "white"):
+    # Create a draw object
+    draw = ImageDraw.Draw(image)
+    font = getFont(fontSize)
+    # Get the width and height of the image
+    width, height = image.size
+    # Get the width and height of the text
+    text_width, text_height = draw.textsize(text, font)
+    # Calculate the position of the text
+    x = 0 # left margin
+    y = height - text_height # bottom margin
+    # Draw the text on the image
+    draw.text((x, y), text, font=font, fill=fontColor, stroke_width=2, stroke_fill=strokeColor)
     
 def getPalettesPath():
     nodes_path = folder_paths.get_folder_paths("custom_nodes")
@@ -209,3 +239,70 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True):
         image_numpy = image_numpy[:,:,0]
     # Return the array with the specified data type (default is unsigned 8-bit integer)
     return image_numpy.astype(imtype)
+
+# From WAS Node Suite
+def smart_grid_image(images: list, cols=6, size=(256,256), add_border=True, border_color=(255,255,255), border_width=3):
+    cols = min(cols, len(images))
+    # calculate row height
+    max_width, max_height = size
+    row_height = 0
+    images_resized = []
+    
+    for img in images:            
+        img_w, img_h = img.size
+        aspect_ratio = img_w / img_h
+        if aspect_ratio > 1: # landscape
+            thumb_w = min(max_width, img_w-border_width)
+            thumb_h = thumb_w / aspect_ratio
+        else: # portrait
+            thumb_h = min(max_height, img_h-border_width)
+            thumb_w = thumb_h * aspect_ratio
+
+        # pad the image to match the maximum size and center it within the cell
+        pad_w = max_width - int(thumb_w)
+        pad_h = max_height - int(thumb_h)
+        left = pad_w // 2
+        top = pad_h // 2
+        right = pad_w - left
+        bottom = pad_h - top
+        padding = (left, top, right, bottom)  # left, top, right, bottom
+        img_resized = ImageOps.expand(img.resize((int(thumb_w), int(thumb_h))), padding)
+
+        if add_border:
+            img_resized_bordered = ImageOps.expand(img_resized, border=border_width//2, fill=border_color)
+                
+        images_resized.append(img_resized)
+        row_height = max(row_height, img_resized.size[1])
+    row_height = int(row_height)
+
+    # calculate the number of rows
+    total_images = len(images_resized)
+    rows = math.ceil(total_images / cols)
+
+    # create empty image to put thumbnails
+    new_image = Image.new('RGB', (cols*size[0]+(cols-1)*border_width, rows*row_height+(rows-1)*border_width), border_color)
+
+    for i, img in enumerate(images_resized):
+        if add_border:
+            border_img = ImageOps.expand(img, border=border_width//2, fill=border_color)
+            x = (i % cols) * (size[0]+border_width)
+            y = (i // cols) * (row_height+border_width)
+            if border_img.size == (size[0], size[1]):
+                new_image.paste(border_img, (x, y, x+size[0], y+size[1]))
+            else:
+                # Resize image to match size parameter
+                border_img = border_img.resize((size[0], size[1]))
+                new_image.paste(border_img, (x, y, x+size[0], y+size[1]))
+        else:
+            x = (i % cols) * (size[0]+border_width)
+            y = (i // cols) * (row_height+border_width)
+            if img.size == (size[0], size[1]):
+                new_image.paste(img, (x, y, x+img.size[0], y+img.size[1]))
+            else:
+                # Resize image to match size parameter
+                img = img.resize((size[0], size[1]))
+                new_image.paste(img, (x, y, x+size[0], y+size[1]))
+                
+    new_image = ImageOps.expand(new_image, border=border_width, fill=border_color)
+
+    return new_image
