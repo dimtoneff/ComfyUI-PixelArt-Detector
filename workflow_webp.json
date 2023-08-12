@@ -1,6 +1,6 @@
 {
-  "last_node_id": 118,
-  "last_link_id": 204,
+  "last_node_id": 115,
+  "last_link_id": 202,
   "nodes": [
     {
       "id": 14,
@@ -458,7 +458,7 @@
         "Node name for S&R": "PixelArtLoadPalettes"
       },
       "widgets_values": [
-        "pastel-qt-1x.png",
+        "31-1x.png",
         "false"
       ]
     },
@@ -805,7 +805,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            204
+            197
           ],
           "shape": 6,
           "slot_index": 0
@@ -872,8 +872,8 @@
       "id": 115,
       "type": "PixelArtDetectorSave",
       "pos": [
-        1342,
-        -1186
+        1207,
+        -1196
       ],
       "size": {
         "0": 467.9800720214844,
@@ -905,15 +905,15 @@
       ]
     },
     {
-      "id": 118,
-      "type": "SaveImage",
+      "id": 109,
+      "type": "Save_as_webp",
       "pos": [
-        2238,
-        -75
+        1945,
+        -42
       ],
       "size": {
-        "0": 484.3656005859375,
-        "1": 556.1629028320312
+        "0": 391.73297119140625,
+        "1": 592.7125244140625
       },
       "flags": {},
       "order": 22,
@@ -922,12 +922,19 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 204
+          "link": 197
         }
       ],
-      "properties": {},
+      "properties": {
+        "Node name for S&R": "Save_as_webp"
+      },
       "widgets_values": [
-        "ComfyUI"
+        "%date%/Image",
+        "lossy",
+        80,
+        "disabled",
+        "enabled",
+        "output"
       ]
     },
     {
@@ -956,7 +963,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            203
+            192
           ],
           "shape": 3,
           "slot_index": 0
@@ -973,16 +980,16 @@
       ]
     },
     {
-      "id": 116,
-      "type": "SaveImage",
+      "id": 99,
+      "type": "Save_as_webp",
       "pos": [
-        2236,
-        -814
+        2232,
+        -902
       ],
-      "size": [
-        484.3655891915132,
-        556.1629180645753
-      ],
+      "size": {
+        "0": 429.0633850097656,
+        "1": 670.9712524414062
+      },
       "flags": {},
       "order": 24,
       "mode": 0,
@@ -990,12 +997,19 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 203
+          "link": 192
         }
       ],
-      "properties": {},
+      "properties": {
+        "Node name for S&R": "Save_as_webp"
+      },
       "widgets_values": [
-        "ComfyUI"
+        "%date%/Image",
+        "lossy",
+        80,
+        "disabled",
+        "enabled",
+        "output"
       ]
     }
   ],
@@ -1113,10 +1127,26 @@
       "LATENT"
     ],
     [
+      192,
+      111,
+      0,
+      99,
+      0,
+      "IMAGE"
+    ],
+    [
       195,
       17,
       0,
       113,
+      0,
+      "IMAGE"
+    ],
+    [
+      197,
+      113,
+      0,
+      109,
       0,
       "IMAGE"
     ],
@@ -1149,22 +1179,6 @@
       17,
       0,
       115,
-      0,
-      "IMAGE"
-    ],
-    [
-      203,
-      111,
-      0,
-      116,
-      0,
-      "IMAGE"
-    ],
-    [
-      204,
-      113,
-      0,
-      118,
       0,
       "IMAGE"
     ]

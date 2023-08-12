@@ -7,6 +7,8 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
+**Update**: changed the default workflow.json to use the default "Save Image" node. workflow_webp.json will be using the webp node.
+
 > [!IMPORTANT]
 > If you have an older version of the nodes, delete the node and add it again. Location of the nodes: "Image/PixelArt". I've added some example workflow in the workflow.json. The example images might have outdated workflows with older node versions embedded inside.
 
@@ -28,13 +30,15 @@ The nodes are able to manipulate the pixel art image in ways that it should look
 
 ## Installation:
 
-To use these nodes, simply open a terminal in ComfyUI/custom_nodes/ and run:
+To use these nodes, simply open a terminal in **ComfyUI/custom_nodes/** and run:
 
 ```
 git clone https://github.com/dimtoneff/ComfyUI-PixelArt-Detector
 ```
 
-I am using a "Save_as_webp" node to save my output images. You can find my customization here:
+I am using a "Save_as_webp" node to save my output images. You can find my customization in the following repo (part of the workflow).
+
+Just execute this command in **ComfyUI/custom_nodes/** too.
 
 ```
 git clone https://github.com/dimtoneff/ComfyUI-Saveaswebp
@@ -42,7 +46,7 @@ git clone https://github.com/dimtoneff/ComfyUI-Saveaswebp
 
 Original "Save_as_webp" node repo: https://github.com/Kaharos94/ComfyUI-Saveaswebp.
 
-If you don't want to use "Save_as_webp" nodes, just delete my them from my workflow and add the default "Save Image" node to save as PNG
+If you don't want to use "Save_as_webp" nodes, just delete them from my workflow and add the default "Save Image" node to save as PNG.
 
 Restart ComfyUI afterwards.
 
