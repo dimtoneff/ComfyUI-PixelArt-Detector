@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector v1.0
+# ComfyUI PixelArt Detector v1.1
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 ![](./examples/Image_00135_.webp) ![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
@@ -15,7 +15,7 @@ This adds 4 custom nodes:
 * __PixelArt Detector (+Save)__ - this node is All in One reduce palette, resize, saving image node
 * __PixelArt Detector (Image->)__ - this node will downscale and reduce the palette and forward the image to another node
 * __PixelArt Palette Converter__ - this node will change the palette of your input. There are a couple of embedded palettes. Use the Palette Loader for more
-* __PixelArt Palette Loader__ - this node comes with a lot of custom palettes which can be an input to the PixelArt Palette Converter "paletteList" input
+* __PixelArt Palette Loader__ - this node comes with a lot of custom palettes which can be an input to the PixelArt Palette Converter "paletteList" input. Optional GRIDS preview of all palettes
 
 The plugin also adds a script to Comfy to drag and drop generated webp|jpeg files into the UI to load the workflows.
 
@@ -56,7 +56,7 @@ There is an option to save a JPEG alongside the webp file.
 
 ### Extra info about the "PixelArt Palette Converter" Node:
 
-The grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality. Experiment or not use that option.
+The grid_pixelate_grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality. Experiment or not use that option.
 
 ### Extra info about the "PixelArt Palette Converter" and "PixelArt Palette Loader" Nodes:
 
@@ -67,10 +67,13 @@ Included palettes from: https://lospec.com/palette-list
 
 **GRIDS**
 
-* Install https://github.com/LEv145/images-grid-comfy-plugin
+* Connect the __PixelArt Palette Loader__ to the __PixelArt Palette Converter__ or use the "grid.json" file and drag&drop into ComfyUI
 * enable the render_all_palettes_in_grid
-* check my workflow: 
+* "Load Preview"
+* play with the settings
 
+![Grids](./examples/grids_example.PNG)
+![Grids](./grid.png)
 
 Here are some examples:
 

@@ -1,0 +1,187 @@
+{
+  "last_node_id": 7,
+  "last_link_id": 11,
+  "nodes": [
+    {
+      "id": 2,
+      "type": "LoadImage",
+      "pos": [
+        15,
+        2
+      ],
+      "size": {
+        "0": 315,
+        "1": 314
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            5
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "Image_00039_.webp",
+        "image"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "PixelArtLoadPalettes",
+      "pos": [
+        17,
+        640
+      ],
+      "size": {
+        "0": 315,
+        "1": 82
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "links": [
+            11
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtLoadPalettes"
+      },
+      "widgets_values": [
+        "31-1x.png",
+        "true"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "PixelArtDetectorConverter",
+      "pos": [
+        455,
+        404
+      ],
+      "size": {
+        "0": 315,
+        "1": 318
+      },
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 5
+        },
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            10
+          ],
+          "shape": 6,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtDetectorConverter"
+      },
+      "widgets_values": [
+        "GAMEBOY",
+        "Image.quantize",
+        2,
+        512,
+        512,
+        26,
+        "#f40e12",
+        "#fff",
+        6,
+        "true",
+        3
+      ]
+    },
+    {
+      "id": 5,
+      "type": "PreviewImage",
+      "pos": [
+        806,
+        -50
+      ],
+      "size": {
+        "0": 1091.5999755859375,
+        "1": 1257.3997802734375
+      },
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 10
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      }
+    }
+  ],
+  "links": [
+    [
+      5,
+      2,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      10,
+      3,
+      0,
+      5,
+      0,
+      "IMAGE"
+    ],
+    [
+      11,
+      4,
+      0,
+      3,
+      1,
+      "LIST"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}

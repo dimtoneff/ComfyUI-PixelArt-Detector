@@ -47,7 +47,7 @@ class PixelArtLoadPalettes(nodes.LoadImage):
     """
     # Set the directory where we get the palettes from
     INPUT_DIR = "1x/"
-    CATEGORY = "image/PixelArt"
+    CATEGORY = "image/PixelArt🕹️"
     RETURN_TYPES = ("LIST",)
     RETURN_NAMES = ("paletteList",)
     FUNCTION = "load_image"
@@ -143,7 +143,7 @@ class PixelArtDetectorConverter():
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "process"
 
-    CATEGORY = "image/PixelArt"
+    CATEGORY = "image/PixelArt🕹️"
     OUTPUT_IS_LIST = (True,)
 
     def process(self, images, palette, pixelize, grid_pixelate_grid_size, resize_w, resize_h, paletteList_grid_font_size, paletteList_grid_font_color, paletteList_grid_cols, paletteList_grid_add_border, paletteList_grid_border_width, paletteList_grid_background, paletteList=None):
@@ -221,7 +221,7 @@ class PixelArtDetectorToImage:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "process"
 
-    CATEGORY = "image/PixelArt"
+    CATEGORY = "image/PixelArt🕹️"
     OUTPUT_IS_LIST = (True,)
 
     def process(self, images, reduce_palette, reduce_palette_max_colors):
@@ -287,7 +287,7 @@ class PixelArtDetectorSave:
     
     OUTPUT_NODE = True
     
-    CATEGORY = "image/PixelArt"
+    CATEGORY = "image/PixelArt🕹️"
     
 
     def process(self, images, reduce_palette, reduce_palette_max_colors, filename_prefix, webp_mode , compression, resize_w, resize_h, prompt=None, extra_pnginfo=None, save_jpg="disabled", save_exif="enabled"):
@@ -400,8 +400,8 @@ NODE_CLASS_MAPPINGS = {
     "PixelArtLoadPalettes": PixelArtLoadPalettes,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "PixelArtDetectorSave": "PixelArt Detector (+Save)",
-    "PixelArtDetectorToImage": "PixelArt Detector (Image->)",
-    "PixelArtDetectorConverter": "PixelArt Palette Converter",
-    "PixelArtLoadPalettes": "PixelArt Palette Loader"
+    "PixelArtDetectorSave": "🕹️PixelArt Detector (+Save)",
+    "PixelArtDetectorToImage": "🕹️PixelArt Detector (Image->)",
+    "PixelArtDetectorConverter": "🎨PixelArt Palette Converter",
+    "PixelArtLoadPalettes": "🎨PixelArt Palette Loader"
 }

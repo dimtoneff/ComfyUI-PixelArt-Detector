@@ -28,6 +28,9 @@ def scanFilesInDir(input_dir):
 def getFont(size: int = 10, fontName: str = "Roboto-Regular.ttf"):
     nodes_path = folder_paths.get_folder_paths("custom_nodes")
     font_path = os.path.normpath(os.path.join(nodes_path[0], "ComfyUI-PixelArt-Detector/fonts/", fontName))
+    if not os.path.exists(font_path):
+        print(f"ERROR: {fontName} NOT FOUND!")
+        return ImageFont.load_default()
     return ImageFont.truetype(str(font_path), size=size)
 
 def transformPalette(palette: list, output: str = "image"):
