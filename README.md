@@ -36,7 +36,7 @@ To use these nodes, simply open a terminal in **ComfyUI/custom_nodes/** and run:
 git clone https://github.com/dimtoneff/ComfyUI-PixelArt-Detector
 ```
 
-I am using a "Save_as_webp" node to save my output images. You can find my customization in the following repo (part of the workflow).
+I am using a "Save_as_webp" node to save my output images (check the workflow_webp.json). You can find my customization in the following repo (part of the workflow).
 
 Just execute this command in **ComfyUI/custom_nodes/** too.
 
@@ -46,7 +46,7 @@ git clone https://github.com/dimtoneff/ComfyUI-Saveaswebp
 
 Original "Save_as_webp" node repo: https://github.com/Kaharos94/ComfyUI-Saveaswebp.
 
-If you don't want to use "Save_as_webp" nodes, just delete them from my workflow and add the default "Save Image" node to save as PNG.
+If you don't want to use "Save_as_webp" nodes, just delete them from my workflow in **workflow_webp.json** and add the default "Save Image" node to save as PNG (or use the default **workflow.json**)
 
 Restart ComfyUI afterwards.
 
