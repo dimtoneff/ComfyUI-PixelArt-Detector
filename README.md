@@ -90,9 +90,11 @@ Here are some examples:
 # Screenshot
 
 Nodes:
+
 ![Example](./nodes.PNG)
 
 Workflow view:
+
 ![Example](./plugin.PNG)
 
 # Examples
