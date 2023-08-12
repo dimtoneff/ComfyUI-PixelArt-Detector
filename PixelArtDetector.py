@@ -128,7 +128,7 @@ class PixelArtDetectorConverter():
                     "grid_pixelate_grid_size":("INT", {"default": 2, "min": 1, "max": 32, "step": 1},),
                     "resize_w":("INT", {"default": 512, "min": 128, "max": 2048, "step": 1},),
                     "resize_h":("INT", {"default": 512, "min": 128, "max": 2048, "step": 1},),
-                    "paletteList_grid_font_size":("INT", {"default": 26, "min": 14, "max": 120, "step": 1},),
+                    "paletteList_grid_font_size":("INT", {"default": 40, "min": 14, "max": 120, "step": 1},),
                     "paletteList_grid_font_color": ("STRING", {"multiline": False, "default": "#f40e12"}),
                     "paletteList_grid_background": ("STRING", {"multiline": False, "default": "#fff"}),
                     "paletteList_grid_cols":("INT", {"default": 6, "min": 1, "max": 20, "step": 1},),
