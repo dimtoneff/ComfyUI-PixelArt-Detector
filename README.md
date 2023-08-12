@@ -77,7 +77,17 @@ Included palettes from: https://lospec.com/palette-list
 ![Grids](./examples/grids_example.PNG)
 ![Grids](./grid.png)
 
-Here are some examples:
+# Screenshots
+
+Nodes:
+
+![Example](./nodes.PNG)
+
+Workflow view:
+
+![Example](./plugin.PNG)
+
+**Here are some palette change examples:**
 
 ![Example](./examples/Image_00169_.webp) ![Example](./examples/Image_00170_.webp)
 
@@ -88,16 +98,6 @@ Here are some examples:
 ![Example](./examples/Image_00050_.webp) ![Example](./examples/Image_00051_.webp)
 
 ![Example](./examples/Image_00053_.webp) ![Example](./examples/Image_00057_.webp)
-
-# Screenshot
-
-Nodes:
-
-![Example](./nodes.PNG)
-
-Workflow view:
-
-![Example](./plugin.PNG)
 
 # Examples
 
