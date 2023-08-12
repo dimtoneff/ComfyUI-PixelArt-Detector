@@ -66,6 +66,10 @@ Reduce palettes or completely exchange palettes on your images.
 
 **Negative prompt**: sloppy, messy, blurry, noisy, highly detailed, ultra textured, photo, realistic, high-resolution, photo-realistic
 
+![](./examples/community/Image_00010_.webp) ![](./examples/community/Image_00011_.webp)
+![](./examples/community/PixelArt_00004_.webp) ![](./examples/community/ImageConverted_00006_.webp)
+![](./examples/community/ImageConverted_00005_.webp)
+
 ### Extra info about the "PixelArt Detector (+Save)" Node:
 
 There is a compression slider and a lossy/lossless option for webp. The compression slider is a bit misleading.
