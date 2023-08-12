@@ -62,6 +62,10 @@ Set the resize inputs to 0 to disable upscaling in the "Save" node.
 
 Reduce palettes or completely exchange palettes on your images.
 
+**Positive prompt**: pixelart, {your scene}, pixel-art. low-res, blocky, pixel art style, 8-bit graphics, sharp details, less colors, early computer game art
+
+**Negative prompt**: sloppy, messy, blurry, noisy, highly detailed, ultra textured, photo, realistic, high-resolution, photo-realistic
+
 ### Extra info about the "PixelArt Detector (+Save)" Node:
 
 There is a compression slider and a lossy/lossless option for webp. The compression slider is a bit misleading.
