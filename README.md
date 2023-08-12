@@ -2,6 +2,7 @@
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 ![](./examples/Image_00135_.webp) ![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
+
 ![](./palettes/32x/nostalgia-32x.png) ![](./palettes/32x/nintendo-super-gameboy-32x.png) ![](./palettes/32x/nintendo-gameboy-bgb-32x.png) ![](./palettes/32x/rustic-gb-32x.png) ![](./palettes/32x/kirokaze-gameboy-32x.png)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
