@@ -1,6 +1,6 @@
 {
-  "last_node_id": 111,
-  "last_link_id": 192,
+  "last_node_id": 115,
+  "last_link_id": 202,
   "nodes": [
     {
       "id": 14,
@@ -430,25 +430,25 @@
       "bgcolor": "#653"
     },
     {
-      "id": 110,
+      "id": 112,
       "type": "PixelArtLoadPalettes",
       "pos": [
-        1144,
-        158
+        1117,
+        235
       ],
       "size": {
         "0": 315,
-        "1": 58
+        "1": 82
       },
       "flags": {},
       "order": 13,
       "mode": 0,
       "outputs": [
         {
-          "name": "LIST",
+          "name": "paletteList",
           "type": "LIST",
           "links": [
-            190
+            198
           ],
           "shape": 3,
           "slot_index": 0
@@ -458,7 +458,8 @@
         "Node name for S&R": "PixelArtLoadPalettes"
       },
       "widgets_values": [
-        "pastel-qt-1x.png"
+        "31-1x.png",
+        "false"
       ]
     },
     {
@@ -759,9 +760,9 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            185,
-            186,
-            188
+            195,
+            200,
+            202
           ],
           "shape": 3,
           "slot_index": 0
@@ -774,15 +775,15 @@
       "bgcolor": "#593930"
     },
     {
-      "id": 106,
-      "type": "PixelArtDetectorSave",
+      "id": 113,
+      "type": "PixelArtDetectorConverter",
       "pos": [
-        1248,
-        -1108
+        1499,
+        87
       ],
       "size": {
-        "0": 390.8402404785156,
-        "1": 667.4219360351562
+        "0": 315,
+        "1": 318
       },
       "flags": {},
       "order": 19,
@@ -791,7 +792,101 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 185
+          "link": 195
+        },
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "link": 198
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            197
+          ],
+          "shape": 6,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtDetectorConverter"
+      },
+      "widgets_values": [
+        "GAMEBOY",
+        "Image.quantize",
+        2,
+        512,
+        512,
+        40,
+        "#f40e12",
+        "#fff",
+        6,
+        "true",
+        3
+      ]
+    },
+    {
+      "id": 114,
+      "type": "PixelArtDetectorToImage",
+      "pos": [
+        1417,
+        -336
+      ],
+      "size": {
+        "0": 315,
+        "1": 82
+      },
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 200
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            201
+          ],
+          "shape": 6,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtDetectorToImage"
+      },
+      "widgets_values": [
+        "disabled",
+        128
+      ]
+    },
+    {
+      "id": 115,
+      "type": "PixelArtDetectorSave",
+      "pos": [
+        1207,
+        -1196
+      ],
+      "size": {
+        "0": 467.9800720214844,
+        "1": 665.3799438476562
+      },
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 202
         }
       ],
       "properties": {
@@ -810,91 +905,36 @@
       ]
     },
     {
-      "id": 107,
-      "type": "PixelArtDetectorToImage",
+      "id": 109,
+      "type": "Save_as_webp",
       "pos": [
-        1401,
-        -259
+        1945,
+        -42
       ],
       "size": {
-        "0": 315,
-        "1": 82
+        "0": 391.73297119140625,
+        "1": 592.7125244140625
       },
       "flags": {},
-      "order": 20,
+      "order": 22,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 186
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            191
-          ],
-          "shape": 6,
-          "slot_index": 0
+          "link": 197
         }
       ],
       "properties": {
-        "Node name for S&R": "PixelArtDetectorToImage"
+        "Node name for S&R": "Save_as_webp"
       },
       "widgets_values": [
+        "%date%/Image",
+        "lossy",
+        80,
+        "disabled",
         "enabled",
-        128
-      ]
-    },
-    {
-      "id": 108,
-      "type": "PixelArtDetectorConverter",
-      "pos": [
-        1516,
-        113
-      ],
-      "size": {
-        "0": 315,
-        "1": 174
-      },
-      "flags": {},
-      "order": 21,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 188
-        },
-        {
-          "name": "paletteList",
-          "type": "LIST",
-          "link": 190
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            189
-          ],
-          "shape": 6,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PixelArtDetectorConverter"
-      },
-      "widgets_values": [
-        "GAMEBOY",
-        "Image.quantize",
-        4,
-        512,
-        512
+        "output"
       ]
     },
     {
@@ -909,13 +949,13 @@
         "1": 130
       },
       "flags": {},
-      "order": 22,
+      "order": 23,
       "mode": 0,
       "inputs": [
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 191
+          "link": 201
         }
       ],
       "outputs": [
@@ -940,49 +980,16 @@
       ]
     },
     {
-      "id": 109,
-      "type": "Save_as_webp",
-      "pos": [
-        1945,
-        -42
-      ],
-      "size": {
-        "0": 391.73297119140625,
-        "1": 592.7125244140625
-      },
-      "flags": {},
-      "order": 23,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 189
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "Save_as_webp"
-      },
-      "widgets_values": [
-        "%date%/Image",
-        "lossy",
-        80,
-        "disabled",
-        "enabled",
-        "output"
-      ]
-    },
-    {
       "id": 99,
       "type": "Save_as_webp",
       "pos": [
         2232,
         -902
       ],
-      "size": [
-        429.063372558594,
-        670.9712297973634
-      ],
+      "size": {
+        "0": 429.0633850097656,
+        "1": 670.9712524414062
+      },
       "flags": {},
       "order": 24,
       "mode": 0,
@@ -1120,58 +1127,58 @@
       "LATENT"
     ],
     [
-      185,
-      17,
+      192,
+      111,
       0,
-      106,
-      0,
-      "IMAGE"
-    ],
-    [
-      186,
-      17,
-      0,
-      107,
+      99,
       0,
       "IMAGE"
     ],
     [
-      188,
+      195,
       17,
       0,
-      108,
+      113,
       0,
       "IMAGE"
     ],
     [
-      189,
-      108,
+      197,
+      113,
       0,
       109,
       0,
       "IMAGE"
     ],
     [
-      190,
-      110,
+      198,
+      112,
       0,
-      108,
+      113,
       1,
       "LIST"
     ],
     [
-      191,
-      107,
+      200,
+      17,
+      0,
+      114,
+      0,
+      "IMAGE"
+    ],
+    [
+      201,
+      114,
       0,
       111,
       0,
       "IMAGE"
     ],
     [
-      192,
-      111,
+      202,
+      17,
       0,
-      99,
+      115,
       0,
       "IMAGE"
     ]
