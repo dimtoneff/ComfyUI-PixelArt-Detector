@@ -2,6 +2,7 @@
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 ![](./examples/Image_00135_.webp) ![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
+![](./palettes/32x/nostalgia-32x.png) ![](./palettes/32x/nintendo-super-gameboy-32x.png) ![](./palettes/32x/nintendo-gameboy-bgb-32x.png) ![](./palettes/32x/rustic-gb-32x.png) ![](./palettes/32x/kirokaze-gameboy-32x.png)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
@@ -69,7 +70,7 @@ Included palettes from: https://lospec.com/palette-list
 
 * Connect the __PixelArt Palette Loader__ to the __PixelArt Palette Converter__ or use the "grid.json" file and drag&drop into ComfyUI
 * enable the render_all_palettes_in_grid
-* "Load Preview"
+* use the default "Preview Image" node to preview the grids (preferably)
 * play with the settings
 
 ![Grids](./examples/grids_example.PNG)
