@@ -79,15 +79,18 @@ Included palettes from: https://lospec.com/palette-list
 
 **Community examples:**
 
-![](./examples/community/image-000.jpg) ![](./examples/community/image-001.jpg) ![](./examples/community/image-003.jpg) ![](./examples/community/image-004.jpg) ![](./examples/community/image-005.jpg) ![](./examples/community/image-006.jpg) ![](./examples/community/image-007.jpg)
+![](./examples/community/image-000.jpg) ![](./examples/community/image-001.jpg) ![](./examples/community/image-003.jpg) ![](./examples/community/image-004.jpg) ![](./examples/community/image-005.jpg) ![](./examples/community/image-006.jpg) 
 
-![](./examples/community/image-008.jpg) ![](./examples/community/image-009.jpg) ![](./examples/community/image-010.jpg) ![](./examples/community/image-011.jpg) ![](./examples/community/image-012.jpg) ![](./examples/community/image-013.jpg) ![](./examples/community/image-014.jpg)
+![](./examples/community/image-007.jpg) ![](./examples/community/image-008.jpg) ![](./examples/community/image-009.jpg) ![](./examples/community/image-010.jpg) ![](./examples/community/image-011.jpg) ![](./examples/community/image-012.jpg)
 
-![](./examples/community/image-015.jpg) ![](./examples/community/image-016.jpg) ![](./examples/community/image-017.jpg) ![](./examples/community/image-018.jpg) ![](./examples/community/image-019.jpg) ![](./examples/community/image-020.jpg) ![](./examples/community/image-021.jpg)
+![](./examples/community/image-013.jpg) ![](./examples/community/image-014.jpg) ![](./examples/community/image-015.jpg) ![](./examples/community/image-016.jpg) ![](./examples/community/image-017.jpg) ![](./examples/community/image-018.jpg) 
 
-![](./examples/community/image-022.jpg) ![](./examples/community/image-023.jpg) ![](./examples/community/image-024.jpg) ![](./examples/community/image-025.jpg) ![](./examples/community/image-026.jpg) ![](./examples/community/image-027.jpg) ![](./examples/community/image-028.jpg)
+![](./examples/community/image-019.jpg) ![](./examples/community/image-020.jpg) ![](./examples/community/image-021.jpg) ![](./examples/community/image-022.jpg) ![](./examples/community/image-023.jpg) ![](./examples/community/image-024.jpg)
 
-![](./examples/community/image-029.jpg) ![](./examples/community/image-030.jpg) ![](./examples/community/image-031.jpg) ![](./examples/community/image-032.jpg) ![](./examples/community/image-033.jpg) ![](./examples/community/image-034.jpg) ![](./examples/community/image-035.jpg)
+![](./examples/community/image-025.jpg) ![](./examples/community/image-026.jpg) ![](./examples/community/image-027.jpg) ![](./examples/community/image-028.jpg) ![](./examples/community/image-029.jpg) ![](./examples/community/image-030.jpg)
+
+![](./examples/community/image-031.jpg) ![](./examples/community/image-032.jpg) ![](./examples/community/image-033.jpg) ![](./examples/community/image-034.jpg) ![](./examples/community/image-035.jpg) ![](./examples/community/image-036.jpg)
+
 
 # Screenshots
 
