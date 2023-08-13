@@ -9,7 +9,7 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
-**Update 1.2**: PixelArtDetectorConverter will upscale the image if the input image is smaller than the resize sizes.
+**Update 1.2**: PixelArtDetectorConverter will upscale the image BEFORE the pixelization/quantization process if the input image is smaller than the resize sizes. If bigger, it will downscale after quantization.
 
 **Update 1.1**: changed the default workflow.json to use the default "Save Image" node. workflow_webp.json will be using the webp node.
 
