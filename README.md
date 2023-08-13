@@ -64,7 +64,7 @@ Set the resize inputs to 0 to disable upscaling in the "Save" node.
 
 Reduce palettes or completely exchange palettes on your images.
 
-##text2image
+## text2image
 
 **Positive prompt**: pixelart, {your scene}, pixel-art. low-res, blocky, pixel art style, 8-bit graphics, sharp details, less colors, early computer game art
 
@@ -74,7 +74,7 @@ Reduce palettes or completely exchange palettes on your images.
 ![](./examples/community/PixelArt_00004_.webp) ![](./examples/community/ImageConverted_00006_.webp)
 ![](./examples/community/ImageConverted_00005_.webp)
 
-##image2image
+## image2image
 
 on a pixel drawing converting to a pixel asset for finetuning:
 
