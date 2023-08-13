@@ -82,6 +82,7 @@ Input:
 ![](./examples/pixil-frame-0.png)
 
 Output:
+
 ![](./examples/PixelArt_00065_.webp)
 
 ![](./examples/PixelArt_00058_.jpg)
