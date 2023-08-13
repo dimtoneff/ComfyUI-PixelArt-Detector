@@ -162,6 +162,11 @@ class PixelArtDetectorConverter():
         results = list()
         for image in images:
             pilImage = Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)).convert("RGB")
+            resizeBefore = pilImage.width < resize_w and pilImage.height < resize_h
+
+            # resize if image needs upscale
+            if resizeBefore and resize_w >= 128 and resize_h >= 128:
+                pilImage = pilImage.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
             
             # Start timer
             start = round(time.time()*1000)
@@ -175,11 +180,11 @@ class PixelArtDetectorConverter():
                     PILOutput = pixelate(pilImage, grid_pixelate_grid_size, transformPalette(palette, "tuple"))
 
             print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image converted in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
-            
-            # resize
-            if not isGrid and resize_w >= 128 and resize_h >= 128:
-                PILOutput = PILOutput.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
 
+            # resize if image needs downscale
+            if not resizeBefore and not isGrid and resize_w >= 128 and resize_h >= 128:
+                PILOutput = PILOutput.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
+                
             # Convert to torch.Tensor            
             PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
             PILOutput = torch.from_numpy(PILOutput)[None,]

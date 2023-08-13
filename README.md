@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector v1.1
+# ComfyUI PixelArt Detector v1.2
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 ![](./examples/Image_00135_.webp) ![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
@@ -9,7 +9,9 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
-**Update**: changed the default workflow.json to use the default "Save Image" node. workflow_webp.json will be using the webp node.
+**Update 1.2**: PixelArtDetectorConverter will upscale the image if the input image is smaller than the resize sizes.
+
+**Update 1.1**: changed the default workflow.json to use the default "Save Image" node. workflow_webp.json will be using the webp node.
 
 > [!IMPORTANT]
 > If you have an older version of the nodes, delete the node and add it again. Location of the nodes: "Image/PixelArt". I've added some example workflow in the workflow.json. The example images might have outdated workflows with older node versions embedded inside.
@@ -62,6 +64,8 @@ Set the resize inputs to 0 to disable upscaling in the "Save" node.
 
 Reduce palettes or completely exchange palettes on your images.
 
+##text2image
+
 **Positive prompt**: pixelart, {your scene}, pixel-art. low-res, blocky, pixel art style, 8-bit graphics, sharp details, less colors, early computer game art
 
 **Negative prompt**: sloppy, messy, blurry, noisy, highly detailed, ultra textured, photo, realistic, high-resolution, photo-realistic
@@ -69,6 +73,26 @@ Reduce palettes or completely exchange palettes on your images.
 ![](./examples/community/Image_00010_.webp) ![](./examples/community/Image_00011_.webp)
 ![](./examples/community/PixelArt_00004_.webp) ![](./examples/community/ImageConverted_00006_.webp)
 ![](./examples/community/ImageConverted_00005_.webp)
+
+##image2image
+
+on a pixel drawing converting to a pixel asset for finetuning:
+
+Input:
+![](./examples/pixil-frame-0.png)
+
+Output:
+![](./examples/PixelArt_00065_.webp) 
+![](./examples/PixelArt_00058_.jpg)
+![](./examples/PixelArt_00071_.webp)
+
+Workflow WEBP (drag & drop):
+![](./img2img_webp.png)
+
+Feel free to experiment!
+
+Other image2image examples:
+https://github.com/dimtoneff/ComfyUI-PixelArt-Detector/issues/2
 
 ### Extra info about the "PixelArt Detector (+Save)" Node:
 
