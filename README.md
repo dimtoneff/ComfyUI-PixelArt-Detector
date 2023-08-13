@@ -79,6 +79,7 @@ Reduce palettes or completely exchange palettes on your images.
 on a pixel drawing converting to a pixel asset for finetuning:
 
 Input:
+
 ![](./examples/pixil-frame-0.png)
 
 Output:
