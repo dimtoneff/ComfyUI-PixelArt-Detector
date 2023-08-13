@@ -94,9 +94,10 @@ Workflow WEBP (drag & drop):
 ![](./img2img_webp.png)
 
 Feel free to experiment!
+Free web tool for pixel art: https://www.pixilart.com/draw
 
 Other image2image examples:
-https://github.com/dimtoneff/ComfyUI-PixelArt-Detector/issues/2
+[Discussion in the issues](https://github.com/dimtoneff/ComfyUI-PixelArt-Detector/issues/2)
 
 ### Extra info about the "PixelArt Detector (+Save)" Node:
 
