@@ -129,7 +129,7 @@ There is an option to save a JPEG alongside the webp file.
     * **Grid.pixelate**: a custom algo to exchange palettes. Slow when **grid_pixelate_grid_scan_size** is 1
     * **NP.quantize**: a custom algo to exchange paletes. Using fast numpy arrays. Slower than Image.quantize
     * **OpenCV.kmeans.reduce**: using the OpenCV library to reduce colors. **Used only when reducing colors before the pallete swap**. Palette exchange is done with Image.quantize. It is slow but good when attempts & iterations are higher. You can change the way it picks colors with the option **"opencv_kmeans_centers"**. 
-* **grid_pixelate_grid_scan_size** option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality. Experiment or not use that option.
+* **grid_pixelate_grid_scan_size** option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increasing the size improves speed but kills quality. Experiment or not use that option.
 * **resize_w** & **resize_h**: it will downscale or upscale the end result to these sizes
 * **reduce_colos_before_palette_swap**: it's going to reduce colors with either Image.quantize or OpenCV.kmeans.
 * **reduce_colors_max_colors**: the colors count to reduce the image to
