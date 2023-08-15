@@ -111,7 +111,7 @@ There is an option to save a JPEG alongside the webp file.
 
 ### Extra info about the "PixelArt Palette Converter" Node:
 
-The grid_pixelate_grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality. Experiment or not use that option.
+The grid_pixelate_grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increasing the size improves speed but kills quality. Experiment or not use that option.
 
 ### Extra info about the "PixelArt Palette Converter" and "PixelArt Palette Loader" Nodes:
 
