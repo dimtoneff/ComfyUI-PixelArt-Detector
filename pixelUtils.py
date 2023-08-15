@@ -272,7 +272,7 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True):
     return image_numpy.astype(imtype)
 
 # flags:
-# - cv2.KMEANS_RANDOM_CENTERS: it always starts with a random set of initial samples, and tries to converge from there depending upon TermCriteria. Fsast but doesn't guarantee same labels for the exact same image. Needs more "attempts" to find the "best" labels
+# - cv2.KMEANS_RANDOM_CENTERS: it always starts with a random set of initial samples, and tries to converge from there depending upon TermCriteria. Fast but doesn't guarantee same labels for the exact same image. Needs more "attempts" to find the "best" labels
 # - cv2.KMEANS_PP_CENTERS: it first iterates the whole image to determine the probable centers and then starts to converge. Slow but will yield optimum and consistent results for same input image.
 def get_cv2_kmeans_flags(method: str) -> int:
     switch = {
