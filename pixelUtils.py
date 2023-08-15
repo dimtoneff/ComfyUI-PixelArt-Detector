@@ -1,11 +1,13 @@
 import collections.abc
 import numpy as np
+import cv2
 import torch
 import os, time, folder_paths, math
 from pathlib import Path
 from PIL import Image, ImageStat, ImageFont, ImageOps, ImageDraw
 from collections import abc
 from itertools import repeat, product
+from typing import Tuple
 import scipy
 
 # From PyTorch internals
@@ -82,6 +84,30 @@ def reducePalette(image, reduce_palette_max_colors):
     best_k = determine_best_k(image, reduce_palette_max_colors)
     return image.quantize(colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB'), best_k
 
+def getQuantizeMethod(method: str) -> int:
+    # a dictionary that maps each string option to a quantize value
+    switch = {
+        "MEDIANCUT": Image.Quantize.MEDIANCUT,
+        "MAXCOVERAGE":Image.Quantize.MAXCOVERAGE,
+        "FASTOCTREE": Image.Quantize.FASTOCTREE
+    }
+
+    # Return the corresponding quantize value from the dictionary, or MEDIANCUT if not found
+    return switch.get(method, None)
+
+def npQuantize(image: Image, palette: list) -> Image:
+    colors = np.asarray(palette)
+    pix = np.asarray(image.convert(None))
+    # use NumPy’s broadcasting feature to subtract each of the palettes color from each pixel in the image
+    # each element in the resulting array represents the difference between a pixel and a color in terms of RGB values
+    subs = pix - colors[:,None,None]
+    # use NumPy’s einsum function to calculate the squared Euclidean distance between each pixel and each color
+    # then use NumPy’s argmin function to find the index of the minimum value along the first axis (the color axis)
+    # finally, this line uses NumPy’s indexing feature to select the corresponding palette color for each pixel from the colors array
+    # the out array represents an image that has been converted to use only the palette's colors
+    out = colors[np.einsum('ijkl,ijkl->ijk',subs,subs).argmin(0)]
+    return Image.fromarray(out.astype('uint8'),'RGB')
+    
 #https://theartofdoingcs.com/blog/f/bit-me
 def pixelate(image: Image, grid_size: int, palette: list):
     if len(palette) > 0:
@@ -155,6 +181,8 @@ def kCentroid(image: Image, width: int, height: int, centroids: int):
 
     # Create an empty array for the downscaled image
     downscaled = np.zeros((height, width, 3), dtype=np.uint8)
+
+    print(f"Size detected and reduced to \033[93m{width}\033[0m x \033[93m{height}\033[0m")                
 
     # Calculate the scaling factors
     wFactor = image.width/width
@@ -243,6 +271,119 @@ def tensor2im(image_tensor, imtype=np.uint8, normalize=True):
     # Return the array with the specified data type (default is unsigned 8-bit integer)
     return image_numpy.astype(imtype)
 
+# flags:
+# - cv2.KMEANS_RANDOM_CENTERS: it always starts with a random set of initial samples, and tries to converge from there depending upon TermCriteria. Fast but doesn't guarantee same labels for the exact same image. Needs more "attempts" to find the "best" labels
+# - cv2.KMEANS_PP_CENTERS: it first iterates the whole image to determine the probable centers and then starts to converge. Slow but will yield optimum and consistent results for same input image.
+def get_cv2_kmeans_flags(method: str) -> int:
+    switch = {
+        "RANDOM_CENTERS": cv2.KMEANS_RANDOM_CENTERS,
+        "PP_CENTERS": cv2.KMEANS_PP_CENTERS,
+    }
+
+    return switch.get(method, cv2.KMEANS_PP_CENTERS)
+
+# input must be BGR cv2 image
+def cv2_quantize(image, max_k: int, flags = cv2.KMEANS_RANDOM_CENTERS, attempts: int = 10, criteriaMaxIterations: int = 10, criteriaMinAccuracy: float = 1.0) -> np.ndarray:
+    """Performs color quantization using K-means clustering algorithm"""
+    # Reshape the image into a 2D array of pixels and convert it to float32 type
+    #pixels = np.array(original_image).reshape((-1, 3)).astype(np.float32)
+    
+    image = np.array(image, dtype=np.float32)
+
+    # Reshape image to (n, 3)
+    rows, cols, channels = image.shape
+    assert channels == 3
+    image = image.reshape((rows * cols, channels))
+
+    # Define criteria
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, criteriaMaxIterations, criteriaMinAccuracy)
+
+    # Apply k-means clustering
+    print(f"Running opencv.kmeans. Flags: {flags}, attempts: {attempts}, criteriaMaxIterations: {criteriaMaxIterations}, criteriaMinAccuracy: {criteriaMinAccuracy}, max_k: {max_k}")
+    compactness, labels, centers = cv2.kmeans(image, max_k, None, criteria, attempts, flags)
+
+    # Convert centers to uint8 and index with labels
+    centers = np.uint8(centers)
+    quantized = centers[labels.flatten()]
+
+    # Convert the centers to uint8 type and reshape them into a 3D array of colors
+    #colors = centers.astype(np.uint8).reshape((-1 ,3))
+    # Use the labels to assign each pixel in the original image to its corresponding color from the centers array
+    #quantized_pixels = colors[labels.flatten()]
+    # Reshape the result into a 3D array of pixels and convert it to uint8 type
+    #quantized_image = quantized_pixels.reshape(original_image.size[::-1] + (3 ,)).astype(np.uint8)
+
+    # cv2 image
+    return quantized.reshape((rows, cols, channels))
+
+def tensor2cv2img(tensor) -> np.ndarray:
+    # Move the tensor to the CPU if needed
+    tensor = tensor.cpu()
+    array = tensor.numpy()
+    # Transpose the array to change the shape from (3, 100, 100) to (100, 100, 3)
+    array = array.transpose(1, 2, 0)
+    # Convert the color space from RGB to BGR
+    return cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
+
+def convert_from_cv2_to_image(img: np.ndarray) -> Image:
+    return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+
+
+def convert_from_image_to_cv2(img: Image) -> np.ndarray:
+    return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    
+def cv2img2tensor(imgs, bgr2rgb=True, float32=True):
+    """Numpy array to tensor.
+
+    Args:
+        imgs (list[ndarray] | ndarray): Input images.
+        bgr2rgb (bool): Whether to change bgr to rgb.
+        float32 (bool): Whether to change to float32.
+
+    Returns:
+        list[tensor] | tensor: Tensor images. If returned results only have
+            one element, just return tensor.
+    """
+
+    def _totensor(img, bgr2rgb, float32):
+        if img.shape[2] == 3 and bgr2rgb:
+            if img.dtype == 'float64':
+                img = img.astype('float32')
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        
+        img = torch.from_numpy(img.transpose(2, 0, 1))
+        if float32:
+            img = img.float()
+        return img
+
+    if isinstance(imgs, list):
+        return [_totensor(img, bgr2rgb, float32) for img in imgs]
+    else:
+        return _totensor(imgs, bgr2rgb, float32)
+
+# From https://github.com/Chadys/QuantizeImageMethods
+def cleanupColors(image: Image, threshold_pixel_percentage: float, nb_colours: int, method):
+    nb_pixels: int = image.width * image.height
+    quantized_img: Image.Image
+    while True:
+        print(f"Attempt quantizing with colors: {nb_colours}")
+        quantized_img = image.quantize(colors=nb_colours, method=method, kmeans=nb_colours)
+        nb_colours_under_threshold = 0
+        colours_list: [Tuple[int, int]] = quantized_img.getcolors(nb_colours)
+        for (count, pixel) in colours_list:
+            if count / nb_pixels < threshold_pixel_percentage:
+                nb_colours_under_threshold += 1
+        print(f"Colors under threshold: {nb_colours_under_threshold}")
+        if nb_colours_under_threshold == 0:
+            break
+        nb_colours -= -(-nb_colours_under_threshold // 2)  # ceil integer division
+    
+    palette: [int] = quantized_img.getpalette()
+    colours_list: [[int]] = [palette[i : i + 3] for i in range(0, nb_colours * 3, 3)]
+    print(f"Colors list: {colours_list}")
+
+    return quantized_img.convert("RGB")
+    
 # From WAS Node Suite
 def smart_grid_image(images: list, cols=6, size=(256,256), add_border=True, border_color=(255,255,255), border_width=3):
     cols = min(cols, len(images))
@@ -250,7 +391,10 @@ def smart_grid_image(images: list, cols=6, size=(256,256), add_border=True, bord
     max_width, max_height = size
     row_height = 0
     images_resized = []
-    
+
+    if add_border == False:
+        border_width = 1
+        
     for img in images:            
         img_w, img_h = img.size
         aspect_ratio = img_w / img_h
@@ -271,8 +415,8 @@ def smart_grid_image(images: list, cols=6, size=(256,256), add_border=True, bord
         padding = (left, top, right, bottom)  # left, top, right, bottom
         img_resized = ImageOps.expand(img.resize((int(thumb_w), int(thumb_h))), padding)
 
-        if add_border:
-            img_resized_bordered = ImageOps.expand(img_resized, border=border_width//2, fill=border_color)
+        # if add_border:
+        #     img_resized = ImageOps.expand(img_resized, border=border_width//2, fill=border_color)
                 
         images_resized.append(img_resized)
         row_height = max(row_height, img_resized.size[1])

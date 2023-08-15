@@ -1,6 +1,6 @@
 {
-  "last_node_id": 115,
-  "last_link_id": 202,
+  "last_node_id": 119,
+  "last_link_id": 210,
   "nodes": [
     {
       "id": 14,
@@ -430,16 +430,16 @@
       "bgcolor": "#653"
     },
     {
-      "id": 112,
+      "id": 116,
       "type": "PixelArtLoadPalettes",
       "pos": [
-        1117,
-        235
+        1062,
+        202
       ],
-      "size": {
-        "0": 315,
-        "1": 82
-      },
+      "size": [
+        398.82257080078125,
+        276.14892578125
+      ],
       "flags": {},
       "order": 13,
       "mode": 0,
@@ -448,7 +448,7 @@
           "name": "paletteList",
           "type": "LIST",
           "links": [
-            198
+            204
           ],
           "shape": 3,
           "slot_index": 0
@@ -459,7 +459,14 @@
       },
       "widgets_values": [
         "31-1x.png",
-        "false"
+        false,
+        "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'",
+        40,
+        "#f40e12",
+        "#fff",
+        6,
+        true,
+        3
       ]
     },
     {
@@ -760,9 +767,9 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            195,
-            200,
-            202
+            205,
+            208,
+            210
           ],
           "shape": 3,
           "slot_index": 0
@@ -775,16 +782,16 @@
       "bgcolor": "#593930"
     },
     {
-      "id": 113,
+      "id": 117,
       "type": "PixelArtDetectorConverter",
       "pos": [
-        1499,
-        87
+        1492,
+        -47
       ],
-      "size": {
-        "0": 315,
-        "1": 318
-      },
+      "size": [
+        415.02264404296875,
+        595.9488525390625
+      ],
       "flags": {},
       "order": 19,
       "mode": 0,
@@ -792,12 +799,12 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 195
+          "link": 205
         },
         {
           "name": "paletteList",
           "type": "LIST",
-          "link": 198
+          "link": 204
         }
       ],
       "outputs": [
@@ -805,7 +812,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            197
+            206
           ],
           "shape": 6,
           "slot_index": 0
@@ -820,20 +827,25 @@
         2,
         512,
         512,
-        40,
-        "#f40e12",
-        "#fff",
-        6,
-        "true",
-        3
+        true,
+        64,
+        false,
+        "MAXCOVERAGE",
+        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels\n",
+        "RANDOM_CENTERS",
+        10,
+        10,
+        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
+        false,
+        0.02
       ]
     },
     {
-      "id": 114,
+      "id": 118,
       "type": "PixelArtDetectorToImage",
       "pos": [
-        1417,
-        -336
+        1425,
+        -345
       ],
       "size": {
         "0": 315,
@@ -846,7 +858,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 200
+          "link": 208
         }
       ],
       "outputs": [
@@ -854,7 +866,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            201
+            209
           ],
           "shape": 6,
           "slot_index": 0
@@ -864,21 +876,21 @@
         "Node name for S&R": "PixelArtDetectorToImage"
       },
       "widgets_values": [
-        "disabled",
-        128
+        true,
+        64
       ]
     },
     {
-      "id": 115,
+      "id": 119,
       "type": "PixelArtDetectorSave",
       "pos": [
-        1207,
-        -1196
+        1383,
+        -1111
       ],
-      "size": {
-        "0": 467.9800720214844,
-        "1": 665.3799438476562
-      },
+      "size": [
+        357.22259521484375,
+        530.5487060546875
+      ],
       "flags": {},
       "order": 21,
       "mode": 0,
@@ -886,7 +898,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 202
+          "link": 210
         }
       ],
       "properties": {
@@ -894,12 +906,12 @@
       },
       "widgets_values": [
         "%date%/PixelArt",
-        "disabled",
+        false,
         128,
         "lossy",
         80,
-        "disabled",
-        "enabled",
+        false,
+        true,
         512,
         512
       ]
@@ -908,8 +920,8 @@
       "id": 109,
       "type": "Save_as_webp",
       "pos": [
-        1945,
-        -42
+        1936,
+        -49
       ],
       "size": {
         "0": 391.73297119140625,
@@ -922,14 +934,14 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 197
+          "link": 206
         }
       ],
       "properties": {
         "Node name for S&R": "Save_as_webp"
       },
       "widgets_values": [
-        "%date%/Image",
+        "%date%/ImageConverted",
         "lossy",
         80,
         "disabled",
@@ -955,7 +967,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 201
+          "link": 209
         }
       ],
       "outputs": [
@@ -1135,50 +1147,50 @@
       "IMAGE"
     ],
     [
-      195,
+      204,
+      116,
+      0,
+      117,
+      1,
+      "LIST"
+    ],
+    [
+      205,
       17,
       0,
-      113,
+      117,
       0,
       "IMAGE"
     ],
     [
-      197,
-      113,
+      206,
+      117,
       0,
       109,
       0,
       "IMAGE"
     ],
     [
-      198,
-      112,
-      0,
-      113,
-      1,
-      "LIST"
-    ],
-    [
-      200,
+      208,
       17,
       0,
-      114,
+      118,
       0,
       "IMAGE"
     ],
     [
-      201,
-      114,
+      209,
+      118,
       0,
       111,
       0,
       "IMAGE"
     ],
     [
-      202,
+      210,
       17,
       0,
-      115,
+      119,
       0,
       "IMAGE"
     ]
