@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector v1.2
+# ComfyUI PixelArt Detector v1.3
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 ![](./examples/Image_00135_.webp) ![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
@@ -8,6 +8,16 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 ![](./examples/community/image-039.jpg) ![](./examples/community/image-040.jpg) ![](./examples/community/image-042.jpg) ![](./examples/community/image-041.jpg) ![](./examples/community/image-044.jpg)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
+
+**Update 1.3**: Updated all 4 nodes. Please, pull this and exchange all your PixelArt nodes in your workflow. Mind the settings.
+
+* added OpenCV.kmeans algo to reduce colors in an image. Working only when reducing colors.
+* added "clean up" pixels function which uses Image.quantize to iterate over the image and eliminate colors based on given threshold. Runs after optional reducing of colors step
+* added different algos to reduce image with Image.quantize method (default one). MEDIANCUT, MAXCOVERAGE etc. MAXCOVERAGE seems to produce cleaner pixel art. FASTOCTREE is fast and bad
+* updated choices to BOOLEANs and toggles
+* added the "NP.quantize" method using fast numpy arrays to reduce and exchange palettes
+* moved out the grid settings from the Palette Converter to the Palette Loader
+* and many other small additions
 
 **Update 1.2**: PixelArtDetectorConverter will upscale the image BEFORE the pixelization/quantization process if the input image is smaller than the resize sizes. If bigger, it will downscale after quantization.
 
@@ -111,7 +121,25 @@ There is an option to save a JPEG alongside the webp file.
 
 ### Extra info about the "PixelArt Palette Converter" Node:
 
-The grid_pixelate_grid_size option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality. Experiment or not use that option.
+* **palette**: a couple of retro palettes used if the paletteList input is not used
+* **pixelize**: here we have different algos to reduce colors & replace palettes
+    * **Image.quantize**: uses PIL Image functions to reduce colors & replace palettes. You can change the reduce algo with **"image_quantize_reduce_method"**
+    * **Grid.pixelate**: a custom algo to exchange palettes. Slow when **grid_pixelate_grid_scan_size** is 1
+    * **NP.quantize**: a custom algo to exchange paletes. Using fast numpy arrays. Slower than Image.quantize
+    * **OpenCV.kmeans.reduce**: using the OpenCV library to reduce colors. **Used only when reducing colors before the pallete swap**. Palette exchange is done with Image.quantize. It is slow but good when attempts & iterations are higher. You can change the way it picks colors with the option **"opencv_kmeans_centers"**. 
+* **grid_pixelate_grid_scan_size** option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increazing the size improves speed but kills quality. Experiment or not use that option.
+* **resize_w** & **resize_h**: it will downscale or upscale the end result to these sizes
+* **reduce_colos_before_palette_swap**: it's going to reduce colors with either Image.quantize or OpenCV.kmeans.
+* **reduce_colors_max_colors**: the colors count to reduce the image to
+* **apply_pixeldetector_max_colors**: use the Astropulse's PixelDetector to grab the max dominant colors.
+* **image_quantize_reduce_method**: the method used from Image.quantize pixelize option to reduce colors. MAXCOVERAGE seems good for pixel art. But try the rest too.
+* **opencv_kmeans_centers**: a flag how to pick the labels/colors. RANDOM is.. random. Interesting results. Increasing attempts makes it slower but picks the best colors.
+  * **KMEANS_RANDOM_CENTERS**: it always starts with a random set of initial samples, and tries to converge from there depending upon TermCriteria. Fast but doesn't guarantee same labels for the exact same image. Needs more "attempts" to find the "best" labels
+  * **KMEANS_PP_CENTERS**: it first iterates the whole image to determine the probable centers and then starts to converge. Slow but will yield optimum and consistent results for same input image.
+* **opencv_kmeans_attempts**: how many times to attempt finding the best colors to reduce the image to
+* **opencv_criteria_max_iterations**: how many iterations per attempt
+* **cleanup_colors**: given a threshold, iterate over the image and eliminate less used colors. May be combined with the **reduce_colos_before_palette_swap** option for optimal clean up. Or optimal break of the image :)
+* **cleanup_pixels_threshold**: the threshold for the cleanup function. Good values: 0.01-0.05. If it eliminates too much, lower the value. **LOWER VALUE = MORE COLORS**
 
 ### Extra info about the "PixelArt Palette Converter" and "PixelArt Palette Loader" Nodes:
 
@@ -127,7 +155,6 @@ Included palettes from: https://lospec.com/palette-list
 * use the default "Preview Image" node to preview the grids (preferably)
 * play with the settings
 
-![Grids](./examples/grids_example.PNG)
 ![Grids](./grid.png)
 
 **Community examples:**

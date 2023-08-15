@@ -36,11 +36,24 @@ import nodes
 import torch
 from pathlib import Path
 from comfy.cli_args import args
+from enum import Enum
 
 import os, json, time, folder_paths
 from datetime import datetime
 from .pixelUtils import *
 
+class GRID_SETTING(Enum):
+    FONT_SIZE = "font_size"
+    FONT_COLOR = "font_color"
+    BACKGROUND_COLOR = "background_color"
+    COLS_NUM = "cols_num"
+    ADD_BORDER = "grid_add_border"
+    BORDER_WIDTH = "grid_border_width"
+
+class SETTINGS(Enum):
+    # it will resize the image if user settings are above this treshold
+    MIN_RESIZE_TRESHOLD: int = 64
+    
 class PixelArtLoadPalettes(nodes.LoadImage):
     """
     A node that scans images in a directory and returns the palette for the seleced image or for all images to display in a Grid
@@ -57,24 +70,43 @@ class PixelArtLoadPalettes(nodes.LoadImage):
         files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), s.INPUT_DIR)))
         return {"required": {
                     "image": (files, ),
-                    "render_all_palettes_in_grid": (["true", "false"], {"default": "false"}),
+                    "render_all_palettes_in_grid": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
+                    "grid_settings": ("STRING", {"multiline": True, "default": "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'"}),
+                    "paletteList_grid_font_size":("INT", {"default": 40, "min": 14, "max": 120, "step": 1},),
+                    "paletteList_grid_font_color": ("STRING", {"multiline": False, "default": "#f40e12"}),
+                    "paletteList_grid_background": ("STRING", {"multiline": False, "default": "#fff"}),
+                    "paletteList_grid_cols":("INT", {"default": 6, "min": 1, "max": 20, "step": 1},),
+                    "paletteList_grid_add_border": ("BOOLEAN", {"default": True, "label_on": "enabled", "label_off": "disabled"}),
+                    "paletteList_grid_border_width":("INT", {"default": 3, "min": 1, "max": 30, "step": 1},),
                     },
                 }
 
-    def load_image(self, image, render_all_palettes_in_grid):
-        def getImagePalette(imgName):
+    def load_image(self, image, render_all_palettes_in_grid, grid_settings, paletteList_grid_font_size, paletteList_grid_font_color, paletteList_grid_background,
+                   paletteList_grid_cols, paletteList_grid_add_border, paletteList_grid_border_width
+                   ):
+        def _getImagePalette(imgName):
             image_path = os.path.normpath(os.path.join(getPalettesPath(), self.INPUT_DIR, imgName))
             i = Image.open(image_path)
             i = ImageOps.exif_transpose(i)
             image = i.convert("P")
             return image.getpalette()
+
+        def _generateGridUserSettings():
+            return {
+                GRID_SETTING.FONT_SIZE: paletteList_grid_font_size,
+                GRID_SETTING.FONT_COLOR: paletteList_grid_font_color,
+                GRID_SETTING.BACKGROUND_COLOR: paletteList_grid_background,
+                GRID_SETTING.COLS_NUM: paletteList_grid_cols,
+                GRID_SETTING.ADD_BORDER: paletteList_grid_add_border,
+                GRID_SETTING.BORDER_WIDTH: paletteList_grid_border_width,
+            }
             
         palettes = list()
-        if (render_all_palettes_in_grid == "true"):
+        if (render_all_palettes_in_grid):
             files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), self.INPUT_DIR)))
-            palettes = [{"p": getImagePalette(file), "a": Path(file).stem} for file in files]
+            palettes = [{"p": _getImagePalette(file), "a": Path(file).stem, "grid_settings": _generateGridUserSettings()} for file in files]
         else:
-            palettes.append({"p": getImagePalette(image), "a": Path(image).stem})
+            palettes.append({"p": _getImagePalette(image), "a": Path(image).stem})
 
         return (palettes,)
     
@@ -124,16 +156,27 @@ class PixelArtDetectorConverter():
         return {"required": {
                     "images": ("IMAGE",),
                     "palette": (["NES", "GAMEBOY"], {"default": "GAMEBOY"}),
-                    "pixelize": (["Image.quantize", "Grid.pixelate"], {"default": "Image.quantize"}),
-                    "grid_pixelate_grid_size":("INT", {"default": 2, "min": 1, "max": 32, "step": 1},),
+                    "pixelize": (["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce"], {"default": "Image.quantize"}),
+                    "grid_pixelate_grid_scan_size":("INT", {"default": 2, "min": 1, "max": 32, "step": 1},),
                     "resize_w":("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
                     "resize_h":("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
-                    "paletteList_grid_font_size":("INT", {"default": 40, "min": 14, "max": 120, "step": 1},),
-                    "paletteList_grid_font_color": ("STRING", {"multiline": False, "default": "#f40e12"}),
-                    "paletteList_grid_background": ("STRING", {"multiline": False, "default": "#fff"}),
-                    "paletteList_grid_cols":("INT", {"default": 6, "min": 1, "max": 20, "step": 1},),
-                    "paletteList_grid_add_border": (["true", "false"], {"default": "true"}),
-                    "paletteList_grid_border_width":("INT", {"default": 3, "min": 1, "max": 30, "step": 1},),
+                    "reduce_colors_before_palette_swap": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
+                    "reduce_colors_max_colors":("INT", {"default": 128, "min": 1, "max": 256, "step": 1},),
+                    "apply_pixeldetector_max_colors": ("BOOLEAN", {"default": True, "label_on": "enabled", "label_off": "disabled"}),
+                    "image_quantize_reduce_method": (["MAXCOVERAGE", "MEDIANCUT", "FASTOCTREE"], {"default": "MAXCOVERAGE"}),
+                    "opencv_settings": ("STRING", {"multiline": True, "default": "OpenCV.kmeans: only when reducing is enabled.\n" +
+                                                   "RANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\n" + 
+                                                   "PP_CENTERS: Slow but will yield optimum and consistent results for same input image.\n" +
+                                                   "attempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n"
+                                                   }),
+                    "opencv_kmeans_centers": (["RANDOM_CENTERS", "PP_CENTERS"], {"default": "RANDOM_CENTERS"}),
+                    "opencv_kmeans_attempts":("INT", {"default": 10, "min": 1, "max": 150, "step": 1},),
+                    "opencv_criteria_max_iterations":("INT", {"default": 10, "min": 1, "max": 150, "step": 1},),
+                    "cleanup": ("STRING", {"multiline": True, "default": "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\n" +
+                                            "Optionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05"
+                                           }),
+                    "cleanup_colors": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
+                    "cleanup_pixels_threshold": ("FLOAT", {"default": 0.02, "min": 0.001, "max": 1.0, "step": 0.001}),
                     },
                 "optional": {
                     "paletteList": ("LIST", {"forceInput": True}),
@@ -146,7 +189,10 @@ class PixelArtDetectorConverter():
     CATEGORY = "image/PixelArt🕹️"
     OUTPUT_IS_LIST = (True,)
 
-    def process(self, images, palette, pixelize, grid_pixelate_grid_size, resize_w, resize_h, paletteList_grid_font_size, paletteList_grid_font_color, paletteList_grid_cols, paletteList_grid_add_border, paletteList_grid_border_width, paletteList_grid_background, paletteList=None):
+    def process(self, images, palette, pixelize, grid_pixelate_grid_scan_size, resize_w, resize_h,
+                reduce_colors_before_palette_swap, reduce_colors_max_colors, apply_pixeldetector_max_colors, image_quantize_reduce_method, opencv_settings, opencv_kmeans_centers, opencv_kmeans_attempts,
+                opencv_criteria_max_iterations, cleanup, cleanup_colors, cleanup_pixels_threshold, paletteList=None
+                ):
         isGrid = (paletteList is not None and len(paletteList) > 1)
 
         # Add a default palette
@@ -162,37 +208,64 @@ class PixelArtDetectorConverter():
         results = list()
         for image in images:
             pilImage = Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)).convert("RGB")
-            resizeBefore = pilImage.width < resize_w and pilImage.height < resize_h
+            # resize(Upscale) if image size is less than the user given size
+            resizeBefore = (pilImage.width < resize_w and pilImage.height < resize_h)
 
             # resize if image needs upscale
-            if resizeBefore and resize_w >= 128 and resize_h >= 128:
+            if resizeBefore and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
                 pilImage = pilImage.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
+                print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image resized before reducing and quantizing!")
+
+            if (reduce_colors_before_palette_swap):
+                # Start timer
+                start = round(time.time()*1000)
+                best_k = determine_best_k(pixel_detect(pilImage), reduce_colors_max_colors) if apply_pixeldetector_max_colors else reduce_colors_max_colors
+                if (pixelize == "Image.quantize"):
+                    pilImage = pilImage.quantize(colors=best_k, dither=Image.Dither.NONE, kmeans=best_k, method=getQuantizeMethod(image_quantize_reduce_method)).convert('RGB')
+                    print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Image.quantize{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds. Quantize method: {self.CYELLOW}{image_quantize_reduce_method}{self.CEND}. KMeans/Best_K: {self.CYELLOW}{best_k}{self.CEND}")
+                else:
+                    # Use OpenCV to reduce the colors of the image
+                    cv2 = convert_from_image_to_cv2(pilImage)
+                    cv2 = cv2_quantize(cv2, best_k, get_cv2_kmeans_flags(opencv_kmeans_centers), opencv_kmeans_attempts, opencv_criteria_max_iterations)
+                    pilImage = convert_from_cv2_to_image(cv2)
+                    print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}OpenCV.kmeans{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
+
+            if (cleanup_colors):
+                # Start timer
+                start = round(time.time()*1000)
+                pilImage = cleanupColors(pilImage, cleanup_pixels_threshold, reduce_colors_max_colors, getQuantizeMethod(image_quantize_reduce_method))
+                print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Pixels clean up finished in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds.")
             
             # Start timer
             start = round(time.time()*1000)
 
             if (isGrid == True):
-                PILOutput = self.genImagesForGrid(pilImage, paletteList, paletteList_grid_font_size, paletteList_grid_font_color, paletteList_grid_cols, (paletteList_grid_add_border == "true"), paletteList_grid_border_width, paletteList_grid_background)
+                PILOutput = self.genImagesForGrid(pilImage, paletteList)
             else:
-                if (pixelize == "Image.quantize"):
+                if (pixelize == "Image.quantize" or pixelize == "OpenCV.kmeans.reduce"):
                     PILOutput = pilImage.quantize(palette=transformPalette(palette, "image"), dither=Image.Dither.NONE).convert('RGB')
+                elif (pixelize == "NP.quantize"):
+                    PILOutput = npQuantize(Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)), transformPalette(palette, "tuple"))            
                 else:
-                    PILOutput = pixelate(pilImage, grid_pixelate_grid_size, transformPalette(palette, "tuple"))
+                    PILOutput = pixelate(pilImage, grid_pixelate_grid_scan_size, transformPalette(palette, "tuple"))
 
-            print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image converted in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
+            print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image converted in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds.")
 
             # resize if image needs downscale
-            if not resizeBefore and not isGrid and resize_w >= 128 and resize_h >= 128:
+            if not resizeBefore and not isGrid and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
                 PILOutput = PILOutput.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
                 
-            # Convert to torch.Tensor            
+            # Convert to torch.Tensor
             PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
             PILOutput = torch.from_numpy(PILOutput)[None,]
             results.append(PILOutput)
                 
         return (results,)
 
-    def genImagesForGrid(self, image: Image, paletteList: list, fontSize: int, fontColor: str, gridCols: int, addBorder: bool, borderWidth: int, gridBackground: str) -> Image:
+    def genImagesForGrid(self, image: Image, paletteList: list[dict], fontSize: int = 40, fontColor: str = "#f40e12", gridBackground: str = "#fff", gridCols: int = 6, addBorder: bool = True, borderWidth: int = 3) -> Image:
+        def _parseGridUserSettings(g: dict):
+            return g.get(GRID_SETTING.FONT_SIZE, fontSize), g.get(GRID_SETTING.FONT_COLOR, fontColor), g.get(GRID_SETTING.BACKGROUND_COLOR, gridBackground), g.get(GRID_SETTING.COLS_NUM, gridCols), g.get(GRID_SETTING.ADD_BORDER, addBorder), g.get(GRID_SETTING.BORDER_WIDTH, borderWidth)
+        
         print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Creating a grid with {self.CYELLOW}Image.quantized{self.CEND} converted images!")
         images = list()
         for d in paletteList:
@@ -202,6 +275,8 @@ class PixelArtDetectorConverter():
             drawTextInImage(img, annotation, fontSize, fontColor, strokeColor=gridBackground)
             images.append(img)
 
+        fontSize, fontColor, gridBackground, gridCols, addBorder, borderWidth = _parseGridUserSettings(paletteList[0].get("grid_settings", {}))
+        
         return smart_grid_image(images=images, cols=gridCols, add_border=addBorder, border_color=gridBackground, border_width=borderWidth)
 
 class PixelArtDetectorToImage:
@@ -218,7 +293,7 @@ class PixelArtDetectorToImage:
     def INPUT_TYPES(s):
         return {"required": {
                     "images": ("IMAGE",),
-                    "reduce_palette": (["enabled", "disabled"], {"default": "disabled"}),
+                    "reduce_palette": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
                     "reduce_palette_max_colors":("INT", {"default": 128, "min": 1, "max": 256, "step": 1},),
                     },
                 }
@@ -244,13 +319,12 @@ class PixelArtDetectorToImage:
                 
             PILOutput = downscale
             
-            if reduce_palette =="enabled":
+            if reduce_palette:
                 print(f"### {self.CGREEN}[PixelArtDetectorToImage]{self.CEND} Reduce pallete max_colors: {self.CYELLOW}{reduce_palette_max_colors}{self.CEND}")
                 # Start timer
                 start = round(time.time()*1000)
                 # Reduce color palette using elbow method
-                best_k = determine_best_k(downscale, reduce_palette_max_colors)
-                PILOutput = downscale.quantize(colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB')
+                PILOutput, best_k = reducePalette(downscale, reduce_palette_max_colors)
                 print(f"### {self.CGREEN}[PixelArtDetectorToImage]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
             PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
@@ -276,12 +350,12 @@ class PixelArtDetectorSave:
             "required": {
                 "images": ("IMAGE",),
                 "filename_prefix": ("STRING", {"default": "%date%/PixelArt"}),
-                "reduce_palette": (["enabled", "disabled"], {"default": "disabled"}),
+                "reduce_palette": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
                 "reduce_palette_max_colors":("INT", {"default": 128, "min": 1, "max": 256, "step": 1},),
                 "webp_mode":(["lossy","lossless"],),
                 "compression":("INT", {"default": 80, "min": 1, "max": 100, "step": 1},),
-                "save_jpg": (["disabled", "enabled"], {"default": "disabled"}),
-                "save_exif": (["disabled", "enabled"], {"default": "enabled"}),
+                "save_jpg": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
+                "save_exif": ("BOOLEAN", {"default": True, "label_on": "enabled", "label_off": "disabled"}),
                 "resize_w":("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
                 "resize_h":("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
             },
@@ -295,7 +369,7 @@ class PixelArtDetectorSave:
     CATEGORY = "image/PixelArt🕹️"
     
 
-    def process(self, images, reduce_palette, reduce_palette_max_colors, filename_prefix, webp_mode , compression, resize_w, resize_h, prompt=None, extra_pnginfo=None, save_jpg="disabled", save_exif="enabled"):
+    def process(self, images, reduce_palette, reduce_palette_max_colors, filename_prefix, webp_mode , compression, resize_w, resize_h, prompt=None, extra_pnginfo=None, save_jpg=False, save_exif=True):
         
         results = list()
         for image in images:
@@ -312,7 +386,7 @@ class PixelArtDetectorSave:
                 
             PILOutput = downscale
                 
-            if reduce_palette =="enabled":
+            if reduce_palette:
                 print(f"### {self.CGREEN}[PixelArtDetectorSave]{self.CEND} Reduce pallete max_colors: {self.CYELLOW}{reduce_palette_max_colors}{self.CEND}")
                 # Start timer
                 start = round(time.time()*1000)
@@ -320,7 +394,7 @@ class PixelArtDetectorSave:
                 print(f"### {self.CGREEN}[PixelArtDetectorSave]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds")
                 
             # resize
-            if resize_w >= 128 and resize_h >= 128:
+            if resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
                 PILOutput = PILOutput.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
                 
             results.append(self.saveImage(
@@ -368,7 +442,7 @@ class PixelArtDetectorSave:
         promptstr = str()
         imgexif = output.getexif() #get the (empty) Exif data of the generated Picture
         
-        if not args.disable_metadata and save_exif == "enabled":
+        if not args.disable_metadata and save_exif:
             if prompt is not None:
                 promptstr="".join(json.dumps(prompt)) #prepare prompt String
                 imgexif[0x010f] ="Prompt:"+ promptstr #Add PromptString to EXIF position 0x010f (Exif.Image.Make)
@@ -385,7 +459,7 @@ class PixelArtDetectorSave:
             boolloss = False
 
         output.save(os.path.join(full_output_folder, file + ".webp"), method=6 , exif=imgexif, lossless=boolloss , quality=compression) #Save as webp - options to be determined
-        if save_jpg =="enabled":
+        if save_jpg:
             output.save(os.path.join(full_output_folder, file + ".jpeg"), exif=imgexif, quality=compression) #Save as jpeg
  
         print(f"### {self.CGREEN}[PixelArtDetectorSave]{self.CEND} Saving file to {self.CYELLOW}{full_output_folder}{self.CEND} Filename: {self.CYELLOW}{file}{self.CEND}")

@@ -1,0 +1,208 @@
+{
+  "last_node_id": 33,
+  "last_link_id": 42,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [
+        312,
+        -906
+      ],
+      "size": {
+        "0": 452.3411560058594,
+        "1": 548.149169921875
+      },
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            40
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null,
+          "shape": 3,
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "PixelArt_00002_ (1).webp",
+        "image"
+      ]
+    },
+    {
+      "id": 33,
+      "type": "PixelArtLoadPalettes",
+      "pos": [
+        309,
+        -45
+      ],
+      "size": {
+        "0": 400,
+        "1": 268
+      },
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "links": [
+            42
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtLoadPalettes"
+      },
+      "widgets_values": [
+        "31-1x.png",
+        false,
+        "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'",
+        40,
+        "#f40e12",
+        "#fff",
+        6,
+        true,
+        3
+      ]
+    },
+    {
+      "id": 32,
+      "type": "PixelArtDetectorConverter",
+      "pos": [
+        830,
+        -244
+      ],
+      "size": [
+        386.79998779296875,
+        624.199951171875
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 40
+        },
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "link": 42
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            41
+          ],
+          "shape": 6,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtDetectorConverter"
+      },
+      "widgets_values": [
+        "GAMEBOY",
+        "OpenCV.kmeans.reduce",
+        2,
+        512,
+        512,
+        true,
+        32,
+        false,
+        "MAXCOVERAGE",
+        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels\n",
+        "RANDOM_CENTERS",
+        10,
+        10,
+        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
+        true,
+        0.04
+      ]
+    },
+    {
+      "id": 4,
+      "type": "Save_as_webp",
+      "pos": [
+        1268,
+        -358
+      ],
+      "size": {
+        "0": 642.074462890625,
+        "1": 797.5352783203125
+      },
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 41
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Save_as_webp"
+      },
+      "widgets_values": [
+        "%date%/ImageConverted",
+        "lossy",
+        80,
+        "disabled",
+        "enabled",
+        "output"
+      ]
+    }
+  ],
+  "links": [
+    [
+      40,
+      1,
+      0,
+      32,
+      0,
+      "IMAGE"
+    ],
+    [
+      41,
+      32,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      42,
+      33,
+      0,
+      32,
+      1,
+      "LIST"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}
