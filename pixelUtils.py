@@ -7,8 +7,16 @@ from pathlib import Path
 from PIL import Image, ImageStat, ImageFont, ImageOps, ImageDraw
 from collections import abc
 from itertools import repeat, product
-from typing import Tuple
+from typing import Tuple, Callable, Union, Type
 import scipy
+
+from pyclustering.cluster import (
+    center_initializer,
+    elbow,
+    kmeans,
+    kmedians,
+)
+from pyclustering.utils import type_metric, distance_metric
 
 # From PyTorch internals
 def _ntuple(n):
@@ -453,3 +461,70 @@ def smart_grid_image(images: list, cols=6, size=(256,256), add_border=True, bord
     new_image = ImageOps.expand(new_image, border=border_width, fill=border_color)
 
     return new_image
+
+MAX_SIZE = 500
+
+def process_pycluster_result(
+    flat_img: np.ndarray,
+    clusters: [[int]],
+    representatives: [[float]],
+    shape: Tuple[int, int, int],
+    conversion_method: int = cv2.COLOR_BGR2RGB,
+) -> Tuple[Type[Image.Image], np.ndarray]:
+    representatives: np.ndarray = np.uint8(representatives)
+    for index_cluster, cluster in enumerate(clusters):
+        for pixel in cluster:
+            flat_img[pixel] = representatives[index_cluster]
+    quantized_img: np.ndarray = np.uint8(flat_img.reshape(shape))
+    quantized_img = cv2.cvtColor(quantized_img, conversion_method)
+    representatives = cv2.cvtColor(
+        np.expand_dims(representatives, axis=0), conversion_method
+    )[0]
+    return Image.fromarray(quantized_img), representatives
+
+def get_img_data(img_input: Image.Image, mini: bool = False, conversion_method: int = cv2.COLOR_RGB2BGR) -> Tuple[np.ndarray, int, np.ndarray]:
+    img: np.ndarray = cv2.cvtColor(np.array(img_input), conversion_method)
+    ratio: float = min(
+        MAX_SIZE / img.shape[0], MAX_SIZE / img.shape[1]
+    )  # calculate ratio
+    if mini:
+        ratio /= 6
+    img = cv2.resize(img, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_AREA)
+
+    nb_pixels: int = img.size
+
+    flat_img: np.ndarray = img.reshape((-1, 3))
+    flat_img: np.ndarray = np.float32(flat_img)
+    return img, nb_pixels, flat_img
+
+def test_pycluster_k(img_input: Image.Image, func: Callable, center_func_str: str, kmin: int = 2, kmax: int = 20) -> Tuple[Type[Image.Image], np.ndarray]:
+    img, nb_pixels, flat_img = get_img_data(img_input)
+    
+    #elbow_instance: elbow.elbow = elbow.elbow(flat_img, kmin, kmax, initializer=center_initializer.random_center_initializer)
+    elbow_instance: elbow.elbow = elbow.elbow(flat_img, kmin, kmax, initializer=center_initializer.kmeans_plusplus_initializer)
+    
+    elbow_instance.process()
+    amount_clusters: int = elbow_instance.get_amount()
+    print(f"kmin: {kmin}, kmax: {kmax}. Amount of elbow found clusters: {amount_clusters}")
+
+    amount_candidates = center_initializer.kmeans_plusplus_initializer.FARTHEST_CENTER_CANDIDATE
+    centers: [np.ndarray] = center_initializer.kmeans_plusplus_initializer(
+        flat_img, amount_clusters, amount_candidates
+    ).initialize()
+
+  # create metric that will be used for clustering
+    manhattan_metric = distance_metric(type_metric.MANHATTAN)
+    canbera_metric = distance_metric(type_metric.CANBERRA)
+    euclidean_sqare = distance_metric(type_metric.EUCLIDEAN_SQUARE)
+    # minkowski_metric = distance_metric(type_metric.MINKOWSKI, degree=5)
+    clusterer: Union[kmeans.kmeans, kmedians.kmedians] = func(flat_img, centers, metric=euclidean_sqare)
+    clusterer.process()
+    clusters: [[int]] = clusterer.get_clusters()
+    representatives: [[float]] = eval("clusterer." + center_func_str + "()")
+    return process_pycluster_result(flat_img, clusters, representatives, img.shape)
+
+def pycluster_kmeans(img_input: Image.Image, kmin: int = 2, kmax: int = 20) -> Tuple[Type[Image.Image], np.ndarray]:
+    return test_pycluster_k(img_input, kmeans.kmeans, "get_centers", kmin, kmax)
+
+def pycluster_kmedians(img_input: Image.Image, kmin: int = 2, kmax: int = 20) -> Tuple[Type[Image.Image], np.ndarray]:
+    return test_pycluster_k(img_input, kmedians.kmedians, "get_medians", kmin, kmax)

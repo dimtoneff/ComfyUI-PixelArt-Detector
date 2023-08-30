@@ -32,6 +32,7 @@ from PIL import Image, ImageOps
 import numpy as np
 import hashlib
 import nodes
+import hqx
 
 import torch
 from pathlib import Path
@@ -69,7 +70,7 @@ class PixelArtLoadPalettes(nodes.LoadImage):
     def INPUT_TYPES(s):
         files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), s.INPUT_DIR)))
         return {"required": {
-                    "image": (files, ),
+                    "image": (files, {"image_upload": True}),
                     "render_all_palettes_in_grid": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
                     "grid_settings": ("STRING", {"multiline": True, "default": "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'"}),
                     "paletteList_grid_font_size":("INT", {"default": 40, "min": 14, "max": 120, "step": 1},),
@@ -156,7 +157,7 @@ class PixelArtDetectorConverter():
         return {"required": {
                     "images": ("IMAGE",),
                     "palette": (["NES", "GAMEBOY"], {"default": "GAMEBOY"}),
-                    "pixelize": (["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce"], {"default": "Image.quantize"}),
+                    "pixelize": (["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce", "Pycluster.kmeans.reduce"], {"default": "Image.quantize"}),
                     "grid_pixelate_grid_scan_size":("INT", {"default": 2, "min": 1, "max": 32, "step": 1},),
                     "resize_w":("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
                     "resize_h":("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
@@ -177,6 +178,8 @@ class PixelArtDetectorConverter():
                                            }),
                     "cleanup_colors": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
                     "cleanup_pixels_threshold": ("FLOAT", {"default": 0.02, "min": 0.001, "max": 1.0, "step": 0.001}),
+                    "enable_hqx_scaler": ("BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
+                    "hqx_scale_by":("INT", {"default": 4, "min": 2, "max": 4, "step": 1},),
                     },
                 "optional": {
                     "paletteList": ("LIST", {"forceInput": True}),
@@ -191,7 +194,7 @@ class PixelArtDetectorConverter():
 
     def process(self, images, palette, pixelize, grid_pixelate_grid_scan_size, resize_w, resize_h,
                 reduce_colors_before_palette_swap, reduce_colors_max_colors, apply_pixeldetector_max_colors, image_quantize_reduce_method, opencv_settings, opencv_kmeans_centers, opencv_kmeans_attempts,
-                opencv_criteria_max_iterations, cleanup, cleanup_colors, cleanup_pixels_threshold, paletteList=None
+                opencv_criteria_max_iterations, cleanup, cleanup_colors, cleanup_pixels_threshold, enable_hqx_scaler, hqx_scale_by, paletteList=None
                 ):
         isGrid = (paletteList is not None and len(paletteList) > 1)
 
@@ -220,15 +223,21 @@ class PixelArtDetectorConverter():
                 # Start timer
                 start = round(time.time()*1000)
                 best_k = determine_best_k(pixel_detect(pilImage), reduce_colors_max_colors) if apply_pixeldetector_max_colors else reduce_colors_max_colors
-                if (pixelize == "Image.quantize"):
-                    pilImage = pilImage.quantize(colors=best_k, dither=Image.Dither.NONE, kmeans=best_k, method=getQuantizeMethod(image_quantize_reduce_method)).convert('RGB')
-                    print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Image.quantize{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds. Quantize method: {self.CYELLOW}{image_quantize_reduce_method}{self.CEND}. KMeans/Best_K: {self.CYELLOW}{best_k}{self.CEND}")
-                else:
+                if (pixelize == "Pycluster.kmeans.reduce"):
+                    # Use pyclustering.kmeans to reduce the colors of the image
+                    pilImage, _ = pycluster_kmeans(pilImage, kmin=best_k//2, kmax=best_k)
+                    print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmeans{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
+                elif (pixelize == "OpenCV.kmeans.reduce"):
                     # Use OpenCV to reduce the colors of the image
                     cv2 = convert_from_image_to_cv2(pilImage)
                     cv2 = cv2_quantize(cv2, best_k, get_cv2_kmeans_flags(opencv_kmeans_centers), opencv_kmeans_attempts, opencv_criteria_max_iterations)
                     pilImage = convert_from_cv2_to_image(cv2)
                     print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}OpenCV.kmeans{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
+                else:
+                    # "Image.quantize"
+                    pilImage = pilImage.quantize(colors=best_k, dither=Image.Dither.NONE, kmeans=best_k, method=getQuantizeMethod(image_quantize_reduce_method)).convert('RGB')
+                    print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Image.quantize{self.CEND} in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds. Quantize method: {self.CYELLOW}{image_quantize_reduce_method}{self.CEND}. KMeans/Best_K: {self.CYELLOW}{best_k}{self.CEND}")
+                
 
             if (cleanup_colors):
                 # Start timer
@@ -242,7 +251,7 @@ class PixelArtDetectorConverter():
             if (isGrid == True):
                 PILOutput = self.genImagesForGrid(pilImage, paletteList)
             else:
-                if (pixelize == "Image.quantize" or pixelize == "OpenCV.kmeans.reduce"):
+                if (pixelize == "Image.quantize" or pixelize == "OpenCV.kmeans.reduce" or "Pycluster.kmeans.reduce"):
                     PILOutput = pilImage.quantize(palette=transformPalette(palette, "image"), dither=Image.Dither.NONE).convert('RGB')
                 elif (pixelize == "NP.quantize"):
                     PILOutput = npQuantize(Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)), transformPalette(palette, "tuple"))            
@@ -252,8 +261,11 @@ class PixelArtDetectorConverter():
             print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image converted in {self.CYELLOW}{round(time.time()*1000)-start}{self.CEND} milliseconds.")
 
             # resize if image needs downscale
-            if not resizeBefore and not isGrid and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
+            if not resizeBefore and not isGrid and not enable_hqx_scaler and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
                 PILOutput = PILOutput.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
+
+            if enable_hqx_scaler and not isGrid:
+                PILOutput = hqx.hqx_scale(PILOutput, hqx_scale_by)
                 
             # Convert to torch.Tensor
             PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
