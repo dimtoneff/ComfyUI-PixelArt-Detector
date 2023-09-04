@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector v1.3
+# ComfyUI PixelArt Detector v1.4
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 ![](./examples/Image_00135_.webp) ![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
