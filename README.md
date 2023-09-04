@@ -9,6 +9,8 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
+**Update 1.4**: Added a check and installation for the opencv (cv2) library used with the nodes. This should fix the reported issues people were having.
+
 **Update 1.3**: Updated all 4 nodes. Please, pull this and exchange all your PixelArt nodes in your workflow. Mind the settings.
 
 * added OpenCV.kmeans algo to reduce colors in an image. Working only when reducing colors.
