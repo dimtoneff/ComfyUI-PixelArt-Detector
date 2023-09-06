@@ -5,6 +5,7 @@ import os, sys, subprocess
 try:
    from pyclustering.cluster import kmeans
    import hqx
+   import cv2
 except ImportError:
    print(f"## PixelArtDetector: installing dependencies")
    my_path = os.path.dirname(__file__)
@@ -15,7 +16,7 @@ except ImportError:
       try:
          subprocess.check_call([sys.executable, '-s', '-m', 'pip', 'install', '-r', requirements_path, '--use-pep517'])
       except:
-         print(f"## [ERROR] PixelArtDetector: Could not install pyclustering library.")
+         print(f"## [ERROR] PixelArtDetector: Could not install the needed libraries.")
    print(f"## PixelArtDetector: installing dependencies done.")
     
 print("### Loading: PixelArtDetector")
