@@ -140,6 +140,30 @@ def getQuantizeMethod(method: str) -> int:
     return switch.get(method, None)
 
 
+def ditherBayer(im, pal_im, order):
+    def _normalized_bayer_matrix(n):
+        if n == 0:
+            return np.zeros((1, 1), "float32")
+        else:
+            q = 4 ** n
+            m = q * _normalized_bayer_matrix(n - 1)
+            return np.bmat(((m - 1.5, m + 0.5), (m + 1.5, m - 0.5))) / q
+
+    num_colors = len(pal_im.getpalette()) // 3
+    spread = 2 * 256 / num_colors
+    bayer_n = int(math.log2(order))
+    bayer_matrix = torch.from_numpy(spread * _normalized_bayer_matrix(bayer_n) + 0.5)
+
+    result = torch.from_numpy(np.array(im).astype(np.float32))
+    tw = math.ceil(result.shape[0] / bayer_matrix.shape[0])
+    th = math.ceil(result.shape[1] / bayer_matrix.shape[1])
+    tiled_matrix = bayer_matrix.tile(tw, th).unsqueeze(-1)
+    result.add_(tiled_matrix[:result.shape[0], :result.shape[1]]).clamp_(0, 255)
+    result = result.to(dtype=torch.uint8)
+
+    return Image.fromarray(result.cpu().numpy())
+
+
 def npQuantize(image: Image, palette: list) -> Image:
     colors = np.asarray(palette)
     pix = np.asarray(image.convert(None))
