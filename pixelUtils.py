@@ -32,13 +32,35 @@ def scanFilesInDir(input_dir):
     return sorted([f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))])
 
 
-def getFont(size: int = 10, fontName: str = "Roboto-Regular.ttf"):
+def getFont(size: int = 26, fontName: str = "Roboto-Regular.ttf"):
     nodes_path = folder_paths.get_folder_paths("custom_nodes")
     font_path = os.path.normpath(os.path.join(nodes_path[0], "ComfyUI-PixelArt-Detector/fonts/", fontName))
     if not os.path.exists(font_path):
         print(f"ERROR: {fontName} NOT FOUND!")
         return ImageFont.load_default()
     return ImageFont.truetype(str(font_path), size=size)
+
+
+def calcFontSizeToFitWidthOfImage(image: Image, text: str, fontSize: int = 26, fontName: str = "Roboto-Regular.ttf"):
+    # Create a draw object
+    draw = ImageDraw.Draw(image)
+    if not hasattr(draw, "textbbox"):
+        print("ImageDraw.textbox not found. Skipping fontSize calculations!")
+        return fontSize
+
+    font = getFont(fontSize, fontName)
+    text_width = draw.textbbox((0, 0), text, font)[2]
+
+    while text_width > image.width:
+        # Reduce the font size by 1
+        fontSize -= 1
+        print(f"Reduced font size for text '{text}' to: {fontSize} to fit the img width! Text width: {text_width} vs Image width: {image.width}")
+        font = getFont(fontSize, fontName)
+        # Get the new text width and height
+        text_width = draw.textbbox((0, 0), text, font)[2]
+        print(f"New text width: {text_width}")
+
+    return fontSize
 
 
 def transformPalette(palette: list, output: str = "image"):
@@ -56,14 +78,22 @@ def transformPalette(palette: list, output: str = "image"):
 def drawTextInImage(image: Image, text, fontSize: int = 26, fontColor=(255, 0, 0), strokeColor="white"):
     # Create a draw object
     draw = ImageDraw.Draw(image)
+    # Recalculate font size to fit img width
+    fontSize = calcFontSizeToFitWidthOfImage(image, text, fontSize)
     font = getFont(fontSize)
     # Get the width and height of the image
     width, height = image.size
     # Get the width and height of the text
-    text_width, text_height = draw.textsize(text, font)
+    if hasattr(draw, "textsize"):
+        _, text_height = draw.textsize(text, font)
+    elif hasattr(draw, "textbbox"):
+        text_height = draw.textbbox((0, 0), text, font)[3]
+    else:
+        text_height = (font.size * len(text.split("\n"))) + 6
+
     # Calculate the position of the text
     x = 0  # left margin
-    y = height - text_height  # bottom margin
+    y = height - (text_height + 5)  # bottom margin
     # Draw the text on the image
     draw.text((x, y), text, font=font, fill=fontColor, stroke_width=2, stroke_fill=strokeColor)
 

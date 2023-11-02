@@ -313,16 +313,17 @@ class PixelArtDetectorConverter():
 
         print(
             f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Creating a grid with {self.CYELLOW}Image.quantized{self.CEND} converted images!")
+
+        fontSize, fontColor, gridBackground, gridCols, addBorder, borderWidth = _parseGridUserSettings(
+            paletteList[0].get("grid_settings", {}))
         images = list()
+        
         for d in paletteList:
             palette = d.get("p")
             annotation = d.get("a")
             img = image.quantize(palette=transformPalette(palette, "image"), dither=Image.Dither.NONE).convert('RGB')
             drawTextInImage(img, annotation, fontSize, fontColor, strokeColor=gridBackground)
             images.append(img)
-
-        fontSize, fontColor, gridBackground, gridCols, addBorder, borderWidth = _parseGridUserSettings(
-            paletteList[0].get("grid_settings", {}))
 
         return smart_grid_image(images=images, cols=gridCols, add_border=addBorder, border_color=gridBackground,
                                 border_width=borderWidth)
