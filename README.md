@@ -10,6 +10,16 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
+**Update 1.5.1**: @tsone added a new dithering node: **PixelArtAddDitherPattern**
+
+* with prepared patterns
+* with custom patterns from a mask
+* also added a b&w palette
+
+![](./dither_node.png)
+
+![](./examples/community/dither-pattern_bw.png)
+
 **Update 1.5**: Maintenance & Dithering + bugfixes
 
 * **added dithering**
@@ -203,6 +213,7 @@ Included palettes from: https://lospec.com/palette-list
 Nodes:
 
 ![Example](./nodes.PNG)
+![](./dither_node.png)
 
 Workflow view:
 
