@@ -28,18 +28,14 @@ SOFTWARE.
 
 # implementation of https://github.com/Astropulse/pixeldetector to a ComfyUI extension node + other goodies
 # by dimtoneff
-from PIL import Image, ImageOps
-import numpy as np
 import hashlib
 import nodes
 import hqx
 
-import torch
-from pathlib import Path
 from comfy.cli_args import args
 from enum import Enum
 
-import os, json, time, folder_paths
+import json, time
 from datetime import datetime
 from .pixelUtils import *
 
@@ -70,10 +66,10 @@ class PixelArtLoadPalettes(nodes.LoadImage):
     FUNCTION = "load_image"
 
     @classmethod
-    def INPUT_TYPES(s):
-        files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), s.INPUT_DIR)))
+    def INPUT_TYPES(cls):
+        files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR)))
         return {"required": {
-            "image": (files, {"image_upload": True}),
+            "image": (files, {"image_upload": False}),
             "render_all_palettes_in_grid": (
                 "BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
             "grid_settings": ("STRING", {"multiline": True,
@@ -96,8 +92,7 @@ class PixelArtLoadPalettes(nodes.LoadImage):
             image_path = os.path.normpath(os.path.join(getPalettesPath(), self.INPUT_DIR, imgName))
             i = Image.open(image_path)
             i = ImageOps.exif_transpose(i)
-            image = i.convert("P")
-            return image.getpalette()
+            return i.convert("P").getpalette()
 
         def _generateGridUserSettings():
             return {
@@ -110,7 +105,7 @@ class PixelArtLoadPalettes(nodes.LoadImage):
             }
 
         palettes = list()
-        if (render_all_palettes_in_grid):
+        if render_all_palettes_in_grid:
             files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), self.INPUT_DIR)))
             palettes = [
                 {"p": _getImagePalette(file), "a": Path(file).stem, "grid_settings": _generateGridUserSettings()} for
@@ -121,23 +116,23 @@ class PixelArtLoadPalettes(nodes.LoadImage):
         return (palettes,)
 
     @classmethod
-    def IS_CHANGED(s, image):
-        image_path = os.path.normpath(os.path.join(getPalettesPath(), s.INPUT_DIR, image))
+    def IS_CHANGED(cls, image):
+        image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, image))
         m = hashlib.sha256()
         with open(image_path, 'rb') as f:
             m.update(f.read())
         return m.digest().hex()
 
     @classmethod
-    def VALIDATE_INPUTS(s, image):
-        image_path = os.path.normpath(os.path.join(getPalettesPath(), s.INPUT_DIR, image))
+    def VALIDATE_INPUTS(cls, image):
+        image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, image))
         if not Path(image_path).is_file():
             return "Invalid image file: {}".format(image)
 
         return True
 
 
-class PixelArtDetectorConverter():
+class PixelArtDetectorConverter:
     """
     A node that can convert images to some fan favorite palettes: NES, GAME BOY etc.
     """
@@ -180,7 +175,7 @@ class PixelArtDetectorConverter():
             "images": ("IMAGE",),
             "palette": (["NES", "GAMEBOY"], {"default": "GAMEBOY"}),
             "pixelize": (
-                ["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce", "Pycluster.kmeans.reduce"],
+                ["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce", "Pycluster.kmeans.reduce", "Pycluster.kmedians.reduce"],
                 {"default": "Image.quantize"}),
             "grid_pixelate_grid_scan_size": ("INT", {"default": 2, "min": 1, "max": 32, "step": 1},),
             "resize_w": ("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
@@ -200,6 +195,7 @@ class PixelArtDetectorConverter():
             "opencv_kmeans_centers": (["RANDOM_CENTERS", "PP_CENTERS"], {"default": "RANDOM_CENTERS"}),
             "opencv_kmeans_attempts": ("INT", {"default": 10, "min": 1, "max": 150, "step": 1},),
             "opencv_criteria_max_iterations": ("INT", {"default": 10, "min": 1, "max": 150, "step": 1},),
+            "pycluster_kmeans_metrics": (["EUCLIDEAN", "EUCLIDEAN_SQUARE", "MANHATTAN", "CHEBYSHEV", "CANBERRA", "CHI_SQUARE"], {"default": "EUCLIDEAN_SQUARE"}),
             "cleanup": ("STRING", {"multiline": True,
                                    "default": "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\n" +
                                               "Optionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05"
@@ -222,7 +218,7 @@ class PixelArtDetectorConverter():
     def process(self, images, palette, pixelize, grid_pixelate_grid_scan_size, resize_w, resize_h,
                 reduce_colors_before_palette_swap, reduce_colors_max_colors, apply_pixeldetector_max_colors,
                 image_quantize_reduce_method, opencv_settings, opencv_kmeans_centers, opencv_kmeans_attempts,
-                opencv_criteria_max_iterations, cleanup, cleanup_colors, cleanup_pixels_threshold, dither, paletteList=None
+                opencv_criteria_max_iterations, pycluster_kmeans_metrics, cleanup, cleanup_colors, cleanup_pixels_threshold, dither, paletteList=None
                 ):
         isGrid = (paletteList is not None and len(paletteList) > 1)
 
@@ -254,19 +250,20 @@ class PixelArtDetectorConverter():
                                           reduce_colors_max_colors) if apply_pixeldetector_max_colors else reduce_colors_max_colors
                 if pixelize == "Pycluster.kmeans.reduce":
                     # Use pyclustering.kmeans to reduce the colors of the image
-                    pilImage, _ = pycluster_kmeans(pilImage, kmin=best_k // 2, kmax=best_k)
+                    pilImage, _ = pycluster_kmeans(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
                     print(
                         f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmeans{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
-                elif pixelize == "Image.quantize":
-                    pilImage = pilImage.quantize(colors=best_k, dither=Image.Dither.NONE, kmeans=best_k, method=getQuantizeMethod(image_quantize_reduce_method)).convert('RGB')
+                elif pixelize == "Pycluster.kmedians.reduce":
+                    # Use pyclustering.kmedians to reduce the colors of the image
+                    pilImage, _ = pycluster_kmedians(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
                     print(
-                        f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Image.quantize{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Quantize method: {self.CYELLOW}{image_quantize_reduce_method}{self.CEND}. KMeans/Best_K: {self.CYELLOW}{best_k}{self.CEND}")
+                        f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmedians{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
                 elif pixelize == "OpenCV.kmeans.reduce":
                     # Use OpenCV to reduce the colors of the image
-                    cv2 = convert_from_image_to_cv2(pilImage)
-                    cv2 = cv2_quantize(cv2, best_k, get_cv2_kmeans_flags(opencv_kmeans_centers), opencv_kmeans_attempts,
-                                       opencv_criteria_max_iterations)
-                    pilImage = convert_from_cv2_to_image(cv2)
+                    cv2Image = convert_from_image_to_cv2(pilImage)
+                    cv2Image = cv2_quantize(cv2Image, best_k, get_cv2_kmeans_flags(opencv_kmeans_centers), opencv_kmeans_attempts,
+                                            opencv_criteria_max_iterations)
+                    pilImage = convert_from_cv2_to_image(cv2Image)
                     print(
                         f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}OpenCV.kmeans{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
                 else:
@@ -284,11 +281,12 @@ class PixelArtDetectorConverter():
             # Start timer
             start = round(time.time() * 1000)
 
+            # Dithering
             if not isGrid and dither.startswith("bayer"):
                 order = int(dither.split('-')[-1])
                 pilImage = ditherBayer(pilImage, transformPalette(palette, "image"), order)
                 print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Dither {dither} applied to the image!")
-            elif not isGrid and dither == "floyd-steinberg" and not (pixelize == "Image.quantize" or pixelize == "OpenCV.kmeans.reduce"):
+            elif not isGrid and dither == "floyd-steinberg" and not (pixelize == "Image.quantize" or pixelize == "OpenCV.kmeans.reduce" or pixelize == "Pycluster.kmeans.reduce"):
                 # we need to pass a palette to enable dithering. this does NOT quantize
                 pilImage = pilImage.quantize(palette=transformPalette(palette, "image"), dither=Image.Dither.FLOYDSTEINBERG).convert('RGB')
                 print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Dither {dither} applied to the image!")

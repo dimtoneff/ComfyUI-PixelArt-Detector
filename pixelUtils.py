@@ -2,14 +2,12 @@ import collections.abc
 import numpy as np
 import cv2
 import torch
-import os, time, folder_paths, math
+import os, folder_paths, math
 from pathlib import Path
 from PIL import Image, ImageStat, ImageFont, ImageOps, ImageDraw
-from collections import abc
 from itertools import repeat, product
 from typing import Tuple, Callable, Union, Type
 import scipy
-from PIL.Image import Image
 from numpy import ndarray
 
 from pyclustering.cluster import (
@@ -552,14 +550,14 @@ def smart_grid_image(images: list, cols=6, size=(256, 256), add_border=True, bor
     return new_image
 
 
-MAX_SIZE = 500
+MAX_SIZE = 512
 
 
 def process_pycluster_result(
         flat_img: np.ndarray,
         clusters: [[int]],
         representatives: [[float]],
-        shape: Tuple[int, int, int],
+        shape: Tuple[int, ...],
         conversion_method: int = cv2.COLOR_BGR2RGB,
 ) -> tuple[Image, ndarray]:
     representatives: np.ndarray = np.uint8(representatives)
@@ -581,7 +579,7 @@ def get_img_data(img_input: Image, mini: bool = False, conversion_method: int = 
     )  # calculate ratio
     if mini:
         ratio /= 6
-    img = cv2.resize(img, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_AREA)
+    img = cv2.resize(img, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_NEAREST_EXACT)
 
     nb_pixels: int = img.size
 
@@ -590,7 +588,21 @@ def get_img_data(img_input: Image, mini: bool = False, conversion_method: int = 
     return img, nb_pixels, flat_img
 
 
-def test_pycluster_k(img_input: Image, func: Callable, center_func_str: str, kmin: int = 2, kmax: int = 20) -> tuple[Image, ndarray]:
+def getPyclusterMetric(method: str) -> distance_metric:
+    # a dictionary that maps each string option to a metric value
+    switch = {
+        "EUCLIDEAN": type_metric.EUCLIDEAN,
+        "EUCLIDEAN_SQUARE": type_metric.EUCLIDEAN_SQUARE,
+        "MANHATTAN": type_metric.MANHATTAN,
+        "CHEBYSHEV": type_metric.CHEBYSHEV,
+        "CANBERRA": type_metric.CANBERRA,
+        "CHI_SQUARE": type_metric.CHI_SQUARE,
+    }
+
+    return distance_metric(switch.get(method, type_metric.EUCLIDEAN_SQUARE))
+
+
+def test_pycluster_k(img_input: Image, func: Callable, center_func_str: str, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
     img, nb_pixels, flat_img = get_img_data(img_input)
 
     # elbow_instance: elbow.elbow = elbow.elbow(flat_img, kmin, kmax, initializer=center_initializer.random_center_initializer)
@@ -605,21 +617,16 @@ def test_pycluster_k(img_input: Image, func: Callable, center_func_str: str, kmi
         flat_img, amount_clusters, amount_candidates
     ).initialize()
 
-    # create metric that will be used for clustering
-    manhattan_metric = distance_metric(type_metric.MANHATTAN)
-    canbera_metric = distance_metric(type_metric.CANBERRA)
-    euclidean_sqare = distance_metric(type_metric.EUCLIDEAN_SQUARE)
-    # minkowski_metric = distance_metric(type_metric.MINKOWSKI, degree=5)
-    clusterer: Union[kmeans.kmeans, kmedians.kmedians] = func(flat_img, centers, metric=euclidean_sqare)
+    clusterer: Union[kmeans.kmeans, kmedians.kmedians] = func(flat_img, centers, metric=getPyclusterMetric(metric))
     clusterer.process()
     clusters: [[int]] = clusterer.get_clusters()
     representatives: [[float]] = eval("clusterer." + center_func_str + "()")
     return process_pycluster_result(flat_img, clusters, representatives, img.shape)
 
 
-def pycluster_kmeans(img_input: Image.Image, kmin: int = 2, kmax: int = 20) -> Tuple[Type[Image.Image], np.ndarray]:
-    return test_pycluster_k(img_input, kmeans.kmeans, "get_centers", kmin, kmax)
+def pycluster_kmeans(img_input: Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
+    return test_pycluster_k(img_input, kmeans.kmeans, "get_centers", kmin, kmax, metric)
 
 
-def pycluster_kmedians(img_input: Image.Image, kmin: int = 2, kmax: int = 20) -> Tuple[Type[Image.Image], np.ndarray]:
-    return test_pycluster_k(img_input, kmedians.kmedians, "get_medians", kmin, kmax)
+def pycluster_kmedians(img_input: Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
+    return test_pycluster_k(img_input, kmedians.kmedians, "get_medians", kmin, kmax, metric)
