@@ -1,6 +1,6 @@
 {
-  "last_node_id": 119,
-  "last_link_id": 210,
+  "last_node_id": 120,
+  "last_link_id": 214,
   "nodes": [
     {
       "id": 14,
@@ -24,13 +24,7 @@
             18
           ],
           "widget": {
-            "name": "text",
-            "config": [
-              "STRING",
-              {
-                "multiline": true
-              }
-            ]
+            "name": "text"
           },
           "slot_index": 0
         }
@@ -256,13 +250,7 @@
             16
           ],
           "widget": {
-            "name": "text",
-            "config": [
-              "STRING",
-              {
-                "multiline": true
-              }
-            ]
+            "name": "text"
           },
           "slot_index": 0
         }
@@ -364,15 +352,7 @@
             41
           ],
           "widget": {
-            "name": "steps",
-            "config": [
-              "INT",
-              {
-                "default": 20,
-                "min": 1,
-                "max": 10000
-              }
-            ]
+            "name": "steps"
           }
         }
       ],
@@ -407,15 +387,7 @@
             43
           ],
           "widget": {
-            "name": "end_at_step",
-            "config": [
-              "INT",
-              {
-                "default": 10000,
-                "min": 0,
-                "max": 10000
-              }
-            ]
+            "name": "end_at_step"
           },
           "slot_index": 0
         }
@@ -436,10 +408,10 @@
         1062,
         202
       ],
-      "size": [
-        398.82257080078125,
-        276.14892578125
-      ],
+      "size": {
+        "0": 398.82257080078125,
+        "1": 276.14892578125
+      },
       "flags": {},
       "order": 13,
       "mode": 0,
@@ -448,7 +420,7 @@
           "name": "paletteList",
           "type": "LIST",
           "links": [
-            204
+            214
           ],
           "shape": 3,
           "slot_index": 0
@@ -550,13 +522,7 @@
           "type": "STRING",
           "link": 16,
           "widget": {
-            "name": "text",
-            "config": [
-              "STRING",
-              {
-                "multiline": true
-              }
-            ]
+            "name": "text"
           },
           "slot_index": 1
         }
@@ -605,13 +571,7 @@
           "type": "STRING",
           "link": 18,
           "widget": {
-            "name": "text",
-            "config": [
-              "STRING",
-              {
-                "multiline": true
-              }
-            ]
+            "name": "text"
           },
           "slot_index": 1
         }
@@ -675,15 +635,7 @@
           "type": "INT",
           "link": 41,
           "widget": {
-            "name": "steps",
-            "config": [
-              "INT",
-              {
-                "default": 20,
-                "min": 1,
-                "max": 10000
-              }
-            ]
+            "name": "steps"
           },
           "slot_index": 4
         },
@@ -692,15 +644,7 @@
           "type": "INT",
           "link": 43,
           "widget": {
-            "name": "end_at_step",
-            "config": [
-              "INT",
-              {
-                "default": 10000,
-                "min": 0,
-                "max": 10000
-              }
-            ]
+            "name": "end_at_step"
           },
           "slot_index": 5
         }
@@ -767,9 +711,9 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            205,
             208,
-            210
+            210,
+            212
           ],
           "shape": 3,
           "slot_index": 0
@@ -780,65 +724,6 @@
       },
       "color": "#332922",
       "bgcolor": "#593930"
-    },
-    {
-      "id": 117,
-      "type": "PixelArtDetectorConverter",
-      "pos": [
-        1492,
-        -47
-      ],
-      "size": [
-        415.02264404296875,
-        595.9488525390625
-      ],
-      "flags": {},
-      "order": 19,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 205
-        },
-        {
-          "name": "paletteList",
-          "type": "LIST",
-          "link": 204
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            206
-          ],
-          "shape": 6,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PixelArtDetectorConverter"
-      },
-      "widgets_values": [
-        "GAMEBOY",
-        "Image.quantize",
-        2,
-        512,
-        512,
-        true,
-        64,
-        false,
-        "MAXCOVERAGE",
-        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels\n",
-        "RANDOM_CENTERS",
-        10,
-        10,
-        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
-        false,
-        0.02
-      ]
     },
     {
       "id": 118,
@@ -852,7 +737,7 @@
         "1": 82
       },
       "flags": {},
-      "order": 20,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -887,12 +772,12 @@
         1383,
         -1111
       ],
-      "size": [
-        357.22259521484375,
-        530.5487060546875
-      ],
+      "size": {
+        "0": 357.22259521484375,
+        "1": 530.5487060546875
+      },
       "flags": {},
-      "order": 21,
+      "order": 20,
       "mode": 0,
       "inputs": [
         {
@@ -917,39 +802,6 @@
       ]
     },
     {
-      "id": 109,
-      "type": "Save_as_webp",
-      "pos": [
-        1936,
-        -49
-      ],
-      "size": {
-        "0": 391.73297119140625,
-        "1": 592.7125244140625
-      },
-      "flags": {},
-      "order": 22,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 206
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "Save_as_webp"
-      },
-      "widgets_values": [
-        "%date%/ImageConverted",
-        "lossy",
-        80,
-        "disabled",
-        "enabled",
-        "output"
-      ]
-    },
-    {
       "id": 111,
       "type": "ImageScale",
       "pos": [
@@ -961,7 +813,7 @@
         "1": 130
       },
       "flags": {},
-      "order": 23,
+      "order": 22,
       "mode": 0,
       "inputs": [
         {
@@ -989,6 +841,39 @@
         512,
         512,
         "disabled"
+      ]
+    },
+    {
+      "id": 109,
+      "type": "Save_as_webp",
+      "pos": [
+        1936,
+        -49
+      ],
+      "size": {
+        "0": 391.73297119140625,
+        "1": 592.7125244140625
+      },
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 213
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Save_as_webp"
+      },
+      "widgets_values": [
+        "%date%/ImageConverted",
+        "lossy",
+        80,
+        "disabled",
+        "enabled",
+        "output"
       ]
     },
     {
@@ -1022,6 +907,66 @@
         "disabled",
         "enabled",
         "output"
+      ]
+    },
+    {
+      "id": 120,
+      "type": "PixelArtDetectorConverter",
+      "pos": [
+        1508,
+        -48
+      ],
+      "size": [
+        409.59979248046875,
+        587.5999145507812
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 212
+        },
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "link": 214
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            213
+          ],
+          "shape": 6,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PixelArtDetectorConverter"
+      },
+      "widgets_values": [
+        "GAMEBOY",
+        "Image.quantize",
+        2,
+        512,
+        512,
+        false,
+        128,
+        true,
+        "MAXCOVERAGE",
+        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n",
+        "RANDOM_CENTERS",
+        10,
+        10,
+        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
+        false,
+        0.02,
+        "none"
       ]
     }
   ],
@@ -1147,30 +1092,6 @@
       "IMAGE"
     ],
     [
-      204,
-      116,
-      0,
-      117,
-      1,
-      "LIST"
-    ],
-    [
-      205,
-      17,
-      0,
-      117,
-      0,
-      "IMAGE"
-    ],
-    [
-      206,
-      117,
-      0,
-      109,
-      0,
-      "IMAGE"
-    ],
-    [
       208,
       17,
       0,
@@ -1193,6 +1114,30 @@
       119,
       0,
       "IMAGE"
+    ],
+    [
+      212,
+      17,
+      0,
+      120,
+      0,
+      "IMAGE"
+    ],
+    [
+      213,
+      120,
+      0,
+      109,
+      0,
+      "IMAGE"
+    ],
+    [
+      214,
+      116,
+      0,
+      120,
+      1,
+      "LIST"
     ]
   ],
   "groups": [
@@ -1205,6 +1150,7 @@
         361
       ],
       "color": "#3f789e",
+      "font_size": 24,
       "locked": false
     },
     {
@@ -1216,6 +1162,7 @@
         622
       ],
       "color": "#3f789e",
+      "font_size": 24,
       "locked": false
     },
     {
@@ -1227,6 +1174,7 @@
         399
       ],
       "color": "#a1309b",
+      "font_size": 24,
       "locked": false
     },
     {
@@ -1238,6 +1186,7 @@
         443
       ],
       "color": "#a1309b",
+      "font_size": 24,
       "locked": false
     },
     {
@@ -1249,6 +1198,7 @@
         350
       ],
       "color": "#b06634",
+      "font_size": 24,
       "locked": false
     },
     {
@@ -1260,6 +1210,7 @@
         524
       ],
       "color": "#3f789e",
+      "font_size": 24,
       "locked": false
     }
   ],

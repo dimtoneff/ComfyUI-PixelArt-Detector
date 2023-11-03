@@ -1,4 +1,5 @@
-# ComfyUI PixelArt Detector v1.4
+# ComfyUI PixelArt Detector v1.5
+
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
 ![](./examples/Image_00135_.webp) ![](./examples/Image_00157_.webp) ![](./examples/Image_00162_.webp) ![](./examples/Image_00165_.webp) ![](./examples/Image_00166_.webp)
@@ -8,6 +9,19 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 ![](./examples/community/image-039.jpg) ![](./examples/community/image-040.jpg) ![](./examples/community/image-042.jpg) ![](./examples/community/image-041.jpg) ![](./examples/community/image-044.jpg)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
+
+**Update 1.5**: Maintenance & Dithering + bugfixes
+
+* **added dithering**
+* made the node compatible with **Pillow < 10 & Pillow > 10**
+* fixed an issue where changing the fontSize in grids did not work
+* fixed an issue with Pillow library and ImageDraw.textsize not available in Pillow>= 10.0
+* fixed an issue with text too long in Grids
+* fixed an issue with the NP.quantize method
+
+Dithering examples:
+
+![](./examples/dither1.gif) ![](./examples/dither2.gif)
 
 **Update 1.4**: Added a check and installation for the opencv (cv2) library used with the nodes. This should fix the reported issues people were having.
 
@@ -23,17 +37,21 @@ Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 
 ![](./frames.gif)
 
-**Update 1.2**: PixelArtDetectorConverter will upscale the image BEFORE the pixelization/quantization process if the input image is smaller than the resize sizes. If bigger, it will downscale after quantization.
+**Update 1.2**: PixelArtDetectorConverter will upscale the image BEFORE the pixelization/quantization process if the input image is smaller than the resize sizes. If bigger, it will downscale after
+quantization.
 
 **Update 1.1**: changed the default workflow.json to use the default "Save Image" node. workflow_webp.json will be using the webp node.
 
 > [!IMPORTANT]
-> If you have an older version of the nodes, delete the node and add it again. Location of the nodes: "Image/PixelArt". I've added some example workflow in the workflow.json. The example images might have outdated workflows with older node versions embedded inside.
+> If you have an older version of the nodes, delete the node and add it again. Location of the nodes: "Image/PixelArt". I've added some example workflow in the workflow.json. The example images might
+> have outdated workflows with older node versions embedded inside.
 
 ## Description:
+
 Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
 
 This adds 4 custom nodes:
+
 * __PixelArt Detector (+Save)__ - this node is All in One reduce palette, resize, saving image node
 * __PixelArt Detector (Image->)__ - this node will downscale and reduce the palette and forward the image to another node
 * __PixelArt Palette Converter__ - this node will change the palette of your input. There are a couple of embedded palettes. Use the Palette Loader for more
@@ -130,20 +148,25 @@ There is an option to save a JPEG alongside the webp file.
     * **Image.quantize**: uses PIL Image functions to reduce colors & replace palettes. You can change the reduce algo with **"image_quantize_reduce_method"**
     * **Grid.pixelate**: a custom algo to exchange palettes. Slow when **grid_pixelate_grid_scan_size** is 1
     * **NP.quantize**: a custom algo to exchange paletes. Using fast numpy arrays. Slower than Image.quantize
-    * **OpenCV.kmeans.reduce**: using the OpenCV library to reduce colors. **Used only when reducing colors before the pallete swap**. Palette exchange is done with Image.quantize. It is slow but good when attempts & iterations are higher. You can change the way it picks colors with the option **"opencv_kmeans_centers"**. 
-* **grid_pixelate_grid_scan_size** option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increasing the size improves speed but kills quality. Experiment or not use that option.
+    * **OpenCV.kmeans.reduce**: using the OpenCV library to reduce colors. **Used only when reducing colors before the pallete swap**. Palette exchange is done with Image.quantize. It is slow but good
+      when attempts & iterations are higher. You can change the way it picks colors with the option **"opencv_kmeans_centers"**.
+* **grid_pixelate_grid_scan_size** option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increasing the size improves speed but kills quality. Experiment or not use
+  that option.
 * **resize_w** & **resize_h**: it will downscale or upscale the end result to these sizes
 * **reduce_colos_before_palette_swap**: it's going to reduce colors with either Image.quantize or OpenCV.kmeans.
 * **reduce_colors_max_colors**: the colors count to reduce the image to
 * **apply_pixeldetector_max_colors**: use the Astropulse's PixelDetector to grab the max dominant colors.
 * **image_quantize_reduce_method**: the method used from Image.quantize pixelize option to reduce colors. MAXCOVERAGE seems good for pixel art. But try the rest too.
 * **opencv_kmeans_centers**: a flag how to pick the labels/colors. RANDOM is.. random. Interesting results. Increasing attempts makes it slower but picks the best colors.
-  * **KMEANS_RANDOM_CENTERS**: it always starts with a random set of initial samples, and tries to converge from there depending upon TermCriteria. Fast but doesn't guarantee same labels for the exact same image. Needs more "attempts" to find the "best" labels
-  * **KMEANS_PP_CENTERS**: it first iterates the whole image to determine the probable centers and then starts to converge. Slow but will yield optimum and consistent results for same input image.
+    * **KMEANS_RANDOM_CENTERS**: it always starts with a random set of initial samples, and tries to converge from there depending upon TermCriteria. Fast but doesn't guarantee same labels for the
+      exact same image. Needs more "attempts" to find the "best" labels
+    * **KMEANS_PP_CENTERS**: it first iterates the whole image to determine the probable centers and then starts to converge. Slow but will yield optimum and consistent results for same input image.
 * **opencv_kmeans_attempts**: how many times to attempt finding the best colors to reduce the image to
 * **opencv_criteria_max_iterations**: how many iterations per attempt
-* **cleanup_colors**: given a threshold, iterate over the image and eliminate less used colors. May be combined with the **reduce_colos_before_palette_swap** option for optimal clean up. Or optimal break of the image :)
+* **cleanup_colors**: given a threshold, iterate over the image and eliminate less used colors. May be combined with the **reduce_colos_before_palette_swap** option for optimal clean up. Or optimal
+  break of the image :)
 * **cleanup_pixels_threshold**: the threshold for the cleanup function. Good values: 0.01-0.05. If it eliminates too much, lower the value. **LOWER VALUE = MORE COLORS**
+* **dither**: apply dithering for more "retro" look
 
 ### Extra info about the "PixelArt Palette Converter" and "PixelArt Palette Loader" Nodes:
 
@@ -163,18 +186,17 @@ Included palettes from: https://lospec.com/palette-list
 
 **Community examples:**
 
-![](./examples/community/image-000.jpg) ![](./examples/community/image-001.jpg) ![](./examples/community/image-003.jpg) ![](./examples/community/image-004.jpg) ![](./examples/community/image-005.jpg) ![](./examples/community/image-006.jpg) 
+![](./examples/community/image-000.jpg) ![](./examples/community/image-001.jpg) ![](./examples/community/image-003.jpg) ![](./examples/community/image-004.jpg) ![](./examples/community/image-005.jpg) ![](./examples/community/image-006.jpg)
 
 ![](./examples/community/image-007.jpg) ![](./examples/community/image-008.jpg) ![](./examples/community/image-009.jpg) ![](./examples/community/image-010.jpg) ![](./examples/community/image-011.jpg) ![](./examples/community/image-012.jpg)
 
-![](./examples/community/image-013.jpg) ![](./examples/community/image-014.jpg) ![](./examples/community/image-015.jpg) ![](./examples/community/image-016.jpg) ![](./examples/community/image-017.jpg) ![](./examples/community/image-018.jpg) 
+![](./examples/community/image-013.jpg) ![](./examples/community/image-014.jpg) ![](./examples/community/image-015.jpg) ![](./examples/community/image-016.jpg) ![](./examples/community/image-017.jpg) ![](./examples/community/image-018.jpg)
 
 ![](./examples/community/image-019.jpg) ![](./examples/community/image-020.jpg) ![](./examples/community/image-021.jpg) ![](./examples/community/image-022.jpg) ![](./examples/community/image-023.jpg) ![](./examples/community/image-024.jpg)
 
 ![](./examples/community/image-025.jpg) ![](./examples/community/image-026.jpg) ![](./examples/community/image-027.jpg) ![](./examples/community/image-028.jpg) ![](./examples/community/image-029.jpg) ![](./examples/community/image-030.jpg)
 
 ![](./examples/community/image-031.jpg) ![](./examples/community/image-032.jpg) ![](./examples/community/image-033.jpg) ![](./examples/community/image-034.jpg) ![](./examples/community/image-035.jpg) ![](./examples/community/image-036.jpg)
-
 
 # Screenshots
 
@@ -217,6 +239,7 @@ Upscaled:
 ![Example](./examples/Image_Upscaled_00012_.webp)
 
 # Credits
+
 Big thanks to https://github.com/Astropulse/pixeldetector for the main code.
 
 Big thanks to https://github.com/Kaharos94/ComfyUI-Saveaswebp for the webp saving code.

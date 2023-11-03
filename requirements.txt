@@ -1,3 +1,4 @@
 pyclustering>=0.10.1
 hqx>=1.0
 opencv-python>=4.8.0
+Pillow
