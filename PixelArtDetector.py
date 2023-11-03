@@ -135,6 +135,109 @@ class PixelArtLoadPalettes(nodes.LoadImage):
 
         return True
 
+class PixelArtAddDitherPattern():
+    """
+    Add an ordered dither pattern to image.
+    """
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+                    "image": ("IMAGE",),
+                    "pattern_type": (["bayer", "halftone", "none"], {"default": "bayer"}),
+                    "pattern_order": ("INT", {"default": 3, "min": 1, "max": 5, "step": 1}),
+                    "amount": ("FLOAT", {"default": 0.25, "min": 0.0, "max": 1.0, "step": 0.0005}),
+                    },
+                "optional": {
+                    "custom_pattern": ("MASK",),
+                    },
+                }
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "process"
+
+    CATEGORY = "image/PixelArt🕹️"
+
+    def _bayer_pattern_normalized(order):
+        def _normalized_bayer(level):
+            if level == 0:
+                return np.zeros((1,1), "float32")
+            else:
+                q = 4 ** level
+                m = q * _normalized_bayer(level - 1)
+                return np.bmat(((m-1.5, m+0.5), (m+1.5, m-0.5))) / q
+        return torch.from_numpy(_normalized_bayer(order))
+
+    def _halftone_45_degrees_pattern(order):
+        size = 2 ** order
+        pattern = np.full((size, size), -1, "int") # Mark cells initially unset.
+
+        v = 0
+
+        # Plot simultanously at two dot origins. Input (xf,yf) is 1-bit fixed point.
+        def plot(xf, yf):
+            nonlocal v
+            for o in (0, size):
+                x,y = ((o+xf) // 2) % size,((o+yf) // 2) % size
+                if pattern[y][x] == -1:
+                    pattern[y][x] = v
+                    v += 1
+
+        # Concentric Bresenham circles.
+        for r in range(1, int(1.41421 * size)):
+            t1 = r * 2 // 16 # To 1-bit fixed point, i.e. increment radius by 0.5 per iteration.
+            x,y = r,0
+            while x >= y:
+                # Order is relevant, scatters threshold increments more evenly.
+                plot(+y  , +x  )
+                plot(+x  , -y-1)
+                plot(-y-1, -x-1)
+                plot(-x-1, +y  )
+                plot(-y-1, +x  )
+                plot(+x  , +y  )
+                plot(+y  , -x-1)
+                plot(-x-1, -y-1)
+                y += 1
+                t1 = t1 + y
+                t2 = t1 - x
+                if t2 >= 0:
+                    t1 = t2
+                    x -= 1
+
+        pattern = torch.tensor(pattern, dtype=torch.float32)
+        return pattern
+
+    # Input pattern values must be >= 0.
+    def _normalize_pattern(pattern):
+        pattern = pattern / pattern.amax(dim=(0,1), keepdim=True) - 0.5 # Normalize to range [-0.5,0.5].
+        order = math.log2(math.sqrt(pattern.shape[0] * pattern.shape[1])) # Calculate order from sides.
+        pattern = pattern * (1 - 0.5 ** (2*order)) # Rescale range to order.
+        return pattern
+
+    def process(self, image, pattern_type, pattern_order, amount, custom_pattern=None):
+        if custom_pattern != None:
+            pattern = custom_pattern.squeeze(0)
+            pattern = PixelArtAddDitherPattern._normalize_pattern(pattern)
+        else:
+            if pattern_type == "bayer":
+                pattern = PixelArtAddDitherPattern._bayer_pattern_normalized(pattern_order)
+            elif pattern_type.startswith("halftone"):
+                pattern = PixelArtAddDitherPattern._halftone_45_degrees_pattern(pattern_order)
+                pattern = PixelArtAddDitherPattern._normalize_pattern(pattern)
+            else:
+                pattern = torch.zeros((4, 4), dtype=torch.float32) # Zero pattern.
+
+        pattern = pattern * amount
+
+        tw = math.ceil(image.shape[1] / pattern.shape[0])
+        th = math.ceil(image.shape[2] / pattern.shape[1])
+        tiled_pattern = pattern.tile(tw, th).unsqueeze(-1).unsqueeze(0)
+
+        result = (image + tiled_pattern[:,:image.shape[1],:image.shape[2]]).clamp_(0, 1)
+        return (result,)
 
 class PixelArtDetectorConverter():
     """
@@ -544,12 +647,14 @@ class PixelArtDetectorSave:
 
 
 NODE_CLASS_MAPPINGS = {
+    "PixelArtAddDitherPattern": PixelArtAddDitherPattern,
     "PixelArtDetectorSave": PixelArtDetectorSave,
     "PixelArtDetectorToImage": PixelArtDetectorToImage,
     "PixelArtDetectorConverter": PixelArtDetectorConverter,
     "PixelArtLoadPalettes": PixelArtLoadPalettes,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "PixelArtAddDitherPattern": "🕹️PixelArt Add Dither Pattern",
     "PixelArtDetectorSave": "🕹️PixelArt Detector (+Save)",
     "PixelArtDetectorToImage": "🕹️PixelArt Detector (Image->)",
     "PixelArtDetectorConverter": "🎨PixelArt Palette Converter",
