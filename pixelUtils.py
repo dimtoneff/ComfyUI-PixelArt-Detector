@@ -64,16 +64,13 @@ def calcFontSizeToFitWidthOfImage(image: Image, text: str, fontSize: int = 26, f
 
 
 def transformPalette(palette: list, output: str = "image"):
-    match output:
-        case "image":
-            palIm = Image.new('P', (1, 1))
-            palIm.putpalette(palette)
-            return palIm
-        case "tuple":
-            return paletteToTuples(palette, 3)
-        case _:  # default case
-            return palette
-
+    if output == "image":
+        palIm = Image.new('P', (1, 1))
+        palIm.putpalette(palette)
+        return palIm
+    if output == "tuple":
+        return paletteToTuples(palette, 3)
+    return palette
 
 def drawTextInImage(image: Image, text, fontSize: int = 26, fontColor=(255, 0, 0), strokeColor="white"):
     # Create a draw object
