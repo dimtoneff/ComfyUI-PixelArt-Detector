@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector v1.5.1
+# ComfyUI PixelArt Detector v1.5.2
 
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
@@ -9,6 +9,11 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 ![](./examples/community/image-039.jpg) ![](./examples/community/image-040.jpg) ![](./examples/community/image-042.jpg) ![](./examples/community/image-041.jpg) ![](./examples/community/image-044.jpg)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
+
+**Update 1.5.2**:
+
+* Fixed the compatibility with Python <3.10
+* Fixed a scipy 'signal' error
 
 **Update 1.5.1**: @tsone added a new dithering node: **PixelArtAddDitherPattern**
 

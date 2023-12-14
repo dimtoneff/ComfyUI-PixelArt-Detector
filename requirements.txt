@@ -1,2 +1,5 @@
 opencv-python>=4.8.0
 Pillow
+numpy~=1.23.5
+torch
+scipy~=1.11.3

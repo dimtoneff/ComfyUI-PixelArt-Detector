@@ -5,10 +5,9 @@ import torch
 import os, time, folder_paths, math
 from pathlib import Path
 from PIL import Image, ImageStat, ImageFont, ImageOps, ImageDraw
-from collections import abc
 from itertools import repeat, product
 from typing import Tuple
-import scipy
+from scipy import signal
 
 
 # From PyTorch internals
@@ -71,6 +70,7 @@ def transformPalette(palette: list, output: str = "image"):
     if output == "tuple":
         return paletteToTuples(palette, 3)
     return palette
+
 
 def drawTextInImage(image: Image, text, fontSize: int = 26, fontColor=(255, 0, 0), strokeColor="white"):
     # Create a draw object
@@ -279,7 +279,7 @@ def kCentroid(image: Image, width: int, height: int, centroids: int):
 def pixel_detect(image: Image):
     # [Astropulse]
     # Thanks to https://github.com/paultron for optimizing my garbage code 
-    # I swapped the axis so they accurately reflect the horizontal and vertical scaling factor for images with uneven ratios
+    # I swapped the axis, so they accurately reflect the horizontal and vertical scaling factor for images with uneven ratios
 
     # Convert the image to a NumPy array
     npim = np.array(image)[..., :3]
@@ -293,8 +293,8 @@ def pixel_detect(image: Image):
     vsum = np.sum(vdiff, 1)
 
     # Find peaks in the horizontal and vertical sums
-    hpeaks, _ = scipy.signal.find_peaks(hsum, distance=1, height=0.0)
-    vpeaks, _ = scipy.signal.find_peaks(vsum, distance=1, height=0.0)
+    hpeaks, _ = signal.find_peaks(hsum, distance=1, height=0.0)
+    vpeaks, _ = signal.find_peaks(vsum, distance=1, height=0.0)
 
     # Compute spacing between the peaks
     hspacing = np.diff(hpeaks)
