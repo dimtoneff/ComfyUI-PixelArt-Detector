@@ -7,7 +7,7 @@ from pathlib import Path
 from PIL import Image, ImageStat, ImageFont, ImageOps, ImageDraw
 from itertools import repeat, product
 from typing import Tuple, Callable, Union, Type
-import scipy
+from scipy import signal
 from numpy import ndarray
 
 from pyclustering.cluster import (
@@ -144,8 +144,69 @@ def getQuantizeMethod(method: str) -> int:
         "FASTOCTREE": Image.Quantize.FASTOCTREE
     }
 
-    # Return the corresponding quantize value from the dictionary, or MEDIANCUT if not found
+    # Return the corresponding quantized value from the dictionary, or MEDIANCUT if not found
     return switch.get(method, None)
+
+
+def bayer_pattern_normalized(order):
+    def _normalized_bayer(level):
+        if level == 0:
+            return np.zeros((1, 1), "float32")
+        else:
+            q = 4 ** level
+            m = q * _normalized_bayer(level - 1)
+            return np.bmat(((m - 1.5, m + 0.5), (m + 1.5, m - 0.5))) / q
+
+    return torch.from_numpy(_normalized_bayer(order))
+
+
+def halftone_45_degrees_pattern(order):
+    size = 2 ** order
+    pattern = np.full((size, size), -1, "int")  # Mark cells initially unset.
+
+    v = 0
+
+    # Plot simultaneously at two dot origins. Input (xf,yf) is 1-bit fixed point.
+    def _plot(xf, yf):
+        nonlocal v
+        for o in (0, size):
+            x, y = ((o + xf) // 2) % size, ((o + yf) // 2) % size
+            if pattern[y][x] == -1:
+                pattern[y][x] = v
+                v += 1
+
+    # Concentric Bresenham circles.
+    for r in range(1, int(1.41421 * size)):
+        t1 = r * 2 // 16  # To 1-bit fixed point, i.e. increment radius by 0.5 per iteration.
+        x, y = r, 0
+        while x >= y:
+            # Order is relevant, scatters threshold increments more evenly.
+            _plot(+y, +x)
+            _plot(+x, -y - 1)
+            _plot(-y - 1, -x - 1)
+            _plot(-x - 1, +y)
+            _plot(-y - 1, +x)
+            _plot(+x, +y)
+            _plot(+y, -x - 1)
+            _plot(-x - 1, -y - 1)
+            y += 1
+            t1 = t1 + y
+            t2 = t1 - x
+            if t2 >= 0:
+                t1 = t2
+                x -= 1
+
+    pattern = torch.tensor(pattern, dtype=torch.float32)
+    return pattern
+
+    # Input pattern values must be >= 0.
+
+
+def normalize_pattern(pattern):
+    pattern = pattern / pattern.amax(dim=(0, 1), keepdim=True) - 0.5  # Normalize to range [-0.5,0.5].
+    order = math.log2(math.sqrt(pattern.shape[0] * pattern.shape[1]))  # Calculate order from sides.
+    pattern = pattern * (1 - 0.5 ** (2 * order))  # Rescale range to order.
+    return pattern
 
 
 def ditherBayer(im, pal_im, order):
@@ -290,7 +351,7 @@ def kCentroid(image: Image, width: int, height: int, centroids: int):
 def pixel_detect(image: Image):
     # [Astropulse]
     # Thanks to https://github.com/paultron for optimizing my garbage code 
-    # I swapped the axis so they accurately reflect the horizontal and vertical scaling factor for images with uneven ratios
+    # I swapped the axis, so they accurately reflect the horizontal and vertical scaling factor for images with uneven ratios
 
     # Convert the image to a NumPy array
     npim = np.array(image)[..., :3]
@@ -304,8 +365,8 @@ def pixel_detect(image: Image):
     vsum = np.sum(vdiff, 1)
 
     # Find peaks in the horizontal and vertical sums
-    hpeaks, _ = scipy.signal.find_peaks(hsum, distance=1, height=0.0)
-    vpeaks, _ = scipy.signal.find_peaks(vsum, distance=1, height=0.0)
+    hpeaks, _ = signal.find_peaks(hsum, distance=1, height=0.0)
+    vpeaks, _ = signal.find_peaks(vsum, distance=1, height=0.0)
 
     # Compute spacing between the peaks
     hspacing = np.diff(hpeaks)
@@ -602,11 +663,12 @@ def getPyclusterMetric(method: str) -> distance_metric:
     return distance_metric(switch.get(method, type_metric.EUCLIDEAN_SQUARE))
 
 
-def test_pycluster_k(img_input: Image, func: Callable, center_func_str: str, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
+def pycluster_k(img_input: Image, func: Callable, center_func_str: str, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
     img, nb_pixels, flat_img = get_img_data(img_input)
 
     # elbow_instance: elbow.elbow = elbow.elbow(flat_img, kmin, kmax, initializer=center_initializer.random_center_initializer)
     elbow_instance: elbow.elbow = elbow.elbow(flat_img, kmin, kmax, initializer=center_initializer.kmeans_plusplus_initializer)
+    # center_initializer.random_center_initializer
 
     elbow_instance.process()
     amount_clusters: int = elbow_instance.get_amount()
@@ -625,8 +687,8 @@ def test_pycluster_k(img_input: Image, func: Callable, center_func_str: str, kmi
 
 
 def pycluster_kmeans(img_input: Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
-    return test_pycluster_k(img_input, kmeans.kmeans, "get_centers", kmin, kmax, metric)
+    return pycluster_k(img_input, kmeans.kmeans, "get_centers", kmin, kmax, metric)
 
 
 def pycluster_kmedians(img_input: Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
-    return test_pycluster_k(img_input, kmedians.kmedians, "get_medians", kmin, kmax, metric)
+    return pycluster_k(img_input, kmedians.kmedians, "get_medians", kmin, kmax, metric)

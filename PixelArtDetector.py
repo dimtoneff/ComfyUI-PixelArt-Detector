@@ -132,7 +132,69 @@ class PixelArtLoadPalettes(nodes.LoadImage):
         return True
 
 
-class PixelArtAddDitherPattern():
+class PixelArtHqxUpscaler:
+    """
+    Add the HQX upscaler
+    """
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "image": ("IMAGE",),
+            "hqx_scale_by": ("INT", {"default": 4, "min": 2, "max": 4, "step": 1},),
+        }}
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "process"
+
+    CATEGORY = "image/PixelArt🕹️/Upscalers"
+
+    def process(self, image, hqx_scale_by):
+        pilImage = tensor2pil(image)
+        pilImage = hqx.hqx_scale(pilImage, hqx_scale_by)
+        tensor = pil2tensor(pilImage)
+        return (tensor,)
+
+
+class PixelArtPyclusterKmeansReducers:
+    """
+    Add the Pycluster.kmeans & Pycluster.kmedians reducers
+    """
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "image": ("IMAGE",),
+            "algo": (["Pycluster.kmeans.reduce", "Pycluster.kmedians.reduce"], {"default": "Pycluster.kmeans.reduce"}),
+            "pycluster_kmeans_metrics": (["EUCLIDEAN", "EUCLIDEAN_SQUARE", "MANHATTAN", "CHEBYSHEV", "CANBERRA", "CHI_SQUARE"], {"default": "EUCLIDEAN_SQUARE"}),
+            "max_colors": ("INT", {"default": 128, "min": 1, "max": 256, "step": 1},),
+            "apply_pixeldetector_max_colors": (
+                "BOOLEAN", {"default": True, "label_on": "enabled", "label_off": "disabled"}),
+        }}
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "process"
+
+    CATEGORY = "image/PixelArt🕹️/Reducers🧹"
+
+    def process(self, image, algo, pycluster_kmeans_metrics, max_colors, apply_pixeldetector_max_colors):
+        pilImage = tensor2pil(image)
+        best_k = determine_best_k(pixel_detect(pilImage),
+                                  max_colors) if apply_pixeldetector_max_colors else max_colors
+
+        if algo == "Pycluster.kmeans.reduce":
+            # Use pyclustering.kmeans to reduce the colors of the image
+            pilImage, _ = pycluster_kmeans(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
+        else:
+            # Use pyclustering.kmedians to reduce the colors of the image
+            pilImage, _ = pycluster_kmedians(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
+
+        tensor = pil2tensor(pilImage)
+
+        return (tensor,)
+
+
+class PixelArtAddDitherPattern:
     """
     Add an ordered dither pattern to image.
     """
@@ -141,7 +203,7 @@ class PixelArtAddDitherPattern():
         pass
 
     @classmethod
-    def INPUT_TYPES(s):
+    def INPUT_TYPES(cls):
         return {"required": {
             "image": ("IMAGE",),
             "pattern_type": (["bayer", "halftone", "none"], {"default": "bayer"}),
@@ -158,73 +220,16 @@ class PixelArtAddDitherPattern():
 
     CATEGORY = "image/PixelArt🕹️"
 
-    def _bayer_pattern_normalized(order):
-        def _normalized_bayer(level):
-            if level == 0:
-                return np.zeros((1, 1), "float32")
-            else:
-                q = 4 ** level
-                m = q * _normalized_bayer(level - 1)
-                return np.bmat(((m - 1.5, m + 0.5), (m + 1.5, m - 0.5))) / q
-
-        return torch.from_numpy(_normalized_bayer(order))
-
-    def _halftone_45_degrees_pattern(order):
-        size = 2 ** order
-        pattern = np.full((size, size), -1, "int")  # Mark cells initially unset.
-
-        v = 0
-
-        # Plot simultaneously at two dot origins. Input (xf,yf) is 1-bit fixed point.
-        def plot(xf, yf):
-            nonlocal v
-            for o in (0, size):
-                x, y = ((o + xf) // 2) % size, ((o + yf) // 2) % size
-                if pattern[y][x] == -1:
-                    pattern[y][x] = v
-                    v += 1
-
-        # Concentric Bresenham circles.
-        for r in range(1, int(1.41421 * size)):
-            t1 = r * 2 // 16  # To 1-bit fixed point, i.e. increment radius by 0.5 per iteration.
-            x, y = r, 0
-            while x >= y:
-                # Order is relevant, scatters threshold increments more evenly.
-                plot(+y, +x)
-                plot(+x, -y - 1)
-                plot(-y - 1, -x - 1)
-                plot(-x - 1, +y)
-                plot(-y - 1, +x)
-                plot(+x, +y)
-                plot(+y, -x - 1)
-                plot(-x - 1, -y - 1)
-                y += 1
-                t1 = t1 + y
-                t2 = t1 - x
-                if t2 >= 0:
-                    t1 = t2
-                    x -= 1
-
-        pattern = torch.tensor(pattern, dtype=torch.float32)
-        return pattern
-
-    # Input pattern values must be >= 0.
-    def _normalize_pattern(pattern):
-        pattern = pattern / pattern.amax(dim=(0, 1), keepdim=True) - 0.5  # Normalize to range [-0.5,0.5].
-        order = math.log2(math.sqrt(pattern.shape[0] * pattern.shape[1]))  # Calculate order from sides.
-        pattern = pattern * (1 - 0.5 ** (2 * order))  # Rescale range to order.
-        return pattern
-
     def process(self, image, pattern_type, pattern_order, amount, custom_pattern=None):
-        if custom_pattern != None:
+        if custom_pattern is not None:
             pattern = custom_pattern.squeeze(0)
-            pattern = PixelArtAddDitherPattern._normalize_pattern(pattern)
+            pattern = normalize_pattern(pattern)
         else:
             if pattern_type == "bayer":
-                pattern = PixelArtAddDitherPattern._bayer_pattern_normalized(pattern_order)
+                pattern = bayer_pattern_normalized(pattern_order)
             elif pattern_type.startswith("halftone"):
-                pattern = PixelArtAddDitherPattern._halftone_45_degrees_pattern(pattern_order)
-                pattern = PixelArtAddDitherPattern._normalize_pattern(pattern)
+                pattern = halftone_45_degrees_pattern(pattern_order)
+                pattern = normalize_pattern(pattern)
             else:
                 pattern = torch.zeros((4, 4), dtype=torch.float32)  # Zero pattern.
 
@@ -281,7 +286,7 @@ class PixelArtDetectorConverter:
             "images": ("IMAGE",),
             "palette": (["NES", "GAMEBOY"], {"default": "GAMEBOY"}),
             "pixelize": (
-                ["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce", "Pycluster.kmeans.reduce", "Pycluster.kmedians.reduce"],
+                ["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce"],
                 {"default": "Image.quantize"}),
             "grid_pixelate_grid_scan_size": ("INT", {"default": 2, "min": 1, "max": 32, "step": 1},),
             "resize_w": ("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
@@ -301,7 +306,6 @@ class PixelArtDetectorConverter:
             "opencv_kmeans_centers": (["RANDOM_CENTERS", "PP_CENTERS"], {"default": "RANDOM_CENTERS"}),
             "opencv_kmeans_attempts": ("INT", {"default": 10, "min": 1, "max": 150, "step": 1},),
             "opencv_criteria_max_iterations": ("INT", {"default": 10, "min": 1, "max": 150, "step": 1},),
-            "pycluster_kmeans_metrics": (["EUCLIDEAN", "EUCLIDEAN_SQUARE", "MANHATTAN", "CHEBYSHEV", "CANBERRA", "CHI_SQUARE"], {"default": "EUCLIDEAN_SQUARE"}),
             "cleanup": ("STRING", {"multiline": True,
                                    "default": "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\n" +
                                               "Optionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05"
@@ -324,7 +328,7 @@ class PixelArtDetectorConverter:
     def process(self, images, palette, pixelize, grid_pixelate_grid_scan_size, resize_w, resize_h,
                 reduce_colors_before_palette_swap, reduce_colors_max_colors, apply_pixeldetector_max_colors,
                 image_quantize_reduce_method, opencv_settings, opencv_kmeans_centers, opencv_kmeans_attempts,
-                opencv_criteria_max_iterations, pycluster_kmeans_metrics, cleanup, cleanup_colors, cleanup_pixels_threshold, dither, paletteList=None
+                opencv_criteria_max_iterations, cleanup, cleanup_colors, cleanup_pixels_threshold, dither, paletteList=None
                 ):
         isGrid = (paletteList is not None and len(paletteList) > 1)
 
@@ -354,17 +358,7 @@ class PixelArtDetectorConverter:
                 start = round(time.time() * 1000)
                 best_k = determine_best_k(pixel_detect(pilImage),
                                           reduce_colors_max_colors) if apply_pixeldetector_max_colors else reduce_colors_max_colors
-                if pixelize == "Pycluster.kmeans.reduce":
-                    # Use pyclustering.kmeans to reduce the colors of the image
-                    pilImage, _ = pycluster_kmeans(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
-                    print(
-                        f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmeans{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
-                elif pixelize == "Pycluster.kmedians.reduce":
-                    # Use pyclustering.kmedians to reduce the colors of the image
-                    pilImage, _ = pycluster_kmedians(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
-                    print(
-                        f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmedians{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
-                elif pixelize == "OpenCV.kmeans.reduce":
+                if pixelize == "OpenCV.kmeans.reduce":
                     # Use OpenCV to reduce the colors of the image
                     cv2Image = convert_from_image_to_cv2(pilImage)
                     cv2Image = cv2_quantize(cv2Image, best_k, get_cv2_kmeans_flags(opencv_kmeans_centers), opencv_kmeans_attempts,
@@ -659,16 +653,20 @@ class PixelArtDetectorSave:
 
 
 NODE_CLASS_MAPPINGS = {
-    "PixelArtAddDitherPattern": PixelArtAddDitherPattern,
     "PixelArtDetectorSave": PixelArtDetectorSave,
     "PixelArtDetectorToImage": PixelArtDetectorToImage,
     "PixelArtDetectorConverter": PixelArtDetectorConverter,
     "PixelArtLoadPalettes": PixelArtLoadPalettes,
+    "PixelArtAddDitherPattern": PixelArtAddDitherPattern,
+    "PixelArtHqxUpscaler": PixelArtHqxUpscaler,
+    "PixelArtPyclusterKmeansReducers": PixelArtPyclusterKmeansReducers
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "PixelArtAddDitherPattern": "🕹️PixelArt Add Dither Pattern",
     "PixelArtDetectorSave": "🕹️PixelArt Detector (+Save)",
     "PixelArtDetectorToImage": "🕹️PixelArt Detector (Image->)",
     "PixelArtDetectorConverter": "🎨PixelArt Palette Converter",
-    "PixelArtLoadPalettes": "🎨PixelArt Palette Loader"
+    "PixelArtLoadPalettes": "🎨PixelArt Palette Loader",
+    "PixelArtAddDitherPattern": "📺PixelArt Add Dither Pattern",
+    "PixelArtHqxUpscaler": "📺PixelArt HQX Upscaler",
+    "PixelArtPyclusterKmeansReducers": "🧹PixelArt Pycluster Reducers"
 }
