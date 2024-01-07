@@ -649,17 +649,182 @@ class PixelArtDetectorSave:
         }
 
 
+from sklearn.cluster import KMeans
+
+class PixelArtPaletteGenerator:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "colors": ("INT", {"default": 16, "min": 8, "max": 256, "step": 1}),
+                "mode": (["Chart", "back_to_back"],),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE","LIST")
+    RETURN_NAMES = ("image","color_palettes")
+    FUNCTION = "image_generate_palette"
+
+    CATEGORY = "image/PixelArt🕹️"
+
+    # Tensor to PIL
+    def tensor2pil(self, image):
+        return Image.fromarray(np.clip(255. * image.cpu().numpy().squeeze(), 0, 255).astype(np.uint8))
+
+    # PIL to Tensor
+    def pil2tensor(self, image):
+        return torch.from_numpy(np.array(image).astype(np.float32) / 255.0).unsqueeze(0)
+
+    def generate_palette(self, img, n_colors=16, cell_size=128, padding=0, font_path=None, font_size=15, mode='chart'):
+        img = img.resize((img.width // 2, img.height // 2), resample=Image.BILINEAR)
+        pixels = np.array(img)
+        pixels = pixels.reshape((-1, 3))
+        kmeans = KMeans(n_clusters=n_colors, random_state=0, n_init='auto').fit(pixels)
+        cluster_centers = np.uint8(kmeans.cluster_centers_)
+
+        # Get the sorted indices based on luminance
+        luminance = np.sqrt(np.dot(cluster_centers, [0.299, 0.587, 0.114]))
+        sorted_indices = np.argsort(luminance)
+
+        # Rearrange the cluster centers and luminance based on sorted indices
+        cluster_centers = cluster_centers[sorted_indices]
+        luminance = luminance[sorted_indices]
+
+        # Group colors by their individual types
+        reds = []
+        greens = []
+        blues = []
+        others = []
+
+        for i in range(n_colors):
+            color = cluster_centers[i]
+            color_type = np.argmax(color)  # Find the dominant color component
+
+            if color_type == 0:
+                reds.append((color, luminance[i]))
+            elif color_type == 1:
+                greens.append((color, luminance[i]))
+            elif color_type == 2:
+                blues.append((color, luminance[i]))
+            else:
+                others.append((color, luminance[i]))
+
+        # Sort each color group by luminance
+        reds.sort(key=lambda x: x[1])
+        greens.sort(key=lambda x: x[1])
+        blues.sort(key=lambda x: x[1])
+        others.sort(key=lambda x: x[1])
+
+        # Combine the sorted color groups
+        sorted_colors = reds + greens + blues + others
+
+        if mode == 'back_to_back':
+            # Calculate the size of the palette image based on the number of colors
+            palette_width = n_colors * cell_size
+            palette_height = cell_size
+        else:
+            # Calculate the number of rows and columns based on the number of colors
+            num_rows = int(np.sqrt(n_colors))
+            num_cols = int(np.ceil(n_colors / num_rows))
+
+            # Calculate the size of the palette image based on the number of rows and columns
+            palette_width = num_cols * cell_size
+            palette_height = num_rows * cell_size
+
+        palette_size = (palette_width, palette_height)
+
+        palette = Image.new('RGB', palette_size, color='white')
+        draw = ImageDraw.Draw(palette)
+        if font_path:
+            font = ImageFont.truetype(font_path, font_size)
+        else:
+            font = ImageFont.load_default()
+
+        hex_palette = []
+        for i, (color, _) in enumerate(sorted_colors):
+            if mode == 'back_to_back':
+                cell_x = i * cell_size
+                cell_y = 0
+            else:
+                row = i % num_rows
+                col = i // num_rows
+                cell_x = col * cell_size
+                cell_y = row * cell_size
+
+            cell_width = cell_size
+            cell_height = cell_size
+
+            color = tuple(color)
+
+            cell = Image.new('RGB', (cell_width, cell_height), color=color)
+            palette.paste(cell, (cell_x, cell_y))
+
+            if mode != 'back_to_back':
+                text_x = cell_x + (cell_width / 2)
+                text_y = cell_y + cell_height + padding
+
+                draw.text((text_x + 1, text_y + 1), f"R: {color[0]} G: {color[1]} B: {color[2]}", font=font, fill='black', anchor='ms')
+                draw.text((text_x, text_y), f"R: {color[0]} G: {color[1]} B: {color[2]}", font=font, fill='white', anchor='ms')
+
+            hex_palette.append('#%02x%02x%02x' % color)
+
+        return palette, '\n'.join(hex_palette)
+
+    def image_generate_palette(self, image, colors=16, mode="chart"):
+        cn_root = os.path.dirname(os.path.abspath(__file__))
+        res_dir = os.path.join(cn_root, 'res')
+        font = os.path.join(res_dir, 'font.ttf')
+
+        if not os.path.exists(font):
+            font = None
+        else:
+            if mode == "Chart":
+                cstr(f'Found font at `{font}`').msg.print()
+
+        if len(image) > 1:
+            palette_list = []
+            for img in image:
+                img = self.tensor2pil(img)
+                palette_image, hex_palette = self.generate_palette(img, colors, 128, 10, font, 15, mode.lower())
+                palette_bytes = self.hex_palette_to_bytes(hex_palette)
+                palette_dict = {"p": palette_bytes, "a": "Arbitrary identifier or annotation."}
+                palette_list.append(palette_dict)
+            return (torch.cat([self.pil2tensor(palette_image) for palette_image, _ in palette_list], dim=0), palette_list)
+        else:
+            image = self.tensor2pil(image[0])
+            palette_image, hex_palette = self.generate_palette(image, colors, 128, 10, font, 15, mode.lower())
+            palette_bytes = self.hex_palette_to_bytes(hex_palette)
+            palette_dict = {"p": palette_bytes, "a": "Arbitrary identifier or annotation."}
+            return (self.pil2tensor(palette_image), [palette_dict,])
+
+    def hex_palette_to_bytes(self, hex_palette):
+        """Convert a hex color palette to bytes."""
+        hex_colors = hex_palette.split('\n')
+        palette_bytes = []
+        for hex_color in hex_colors:
+            # Remove the '#' character and convert to integer RGB values.
+            rgb = tuple(int(hex_color[i:i+2], 16) for i in (1, 3, 5))
+            palette_bytes.extend(rgb)
+        return bytes(palette_bytes)
+
+
 NODE_CLASS_MAPPINGS = {
     "PixelArtAddDitherPattern": PixelArtAddDitherPattern,
     "PixelArtDetectorSave": PixelArtDetectorSave,
     "PixelArtDetectorToImage": PixelArtDetectorToImage,
     "PixelArtDetectorConverter": PixelArtDetectorConverter,
     "PixelArtLoadPalettes": PixelArtLoadPalettes,
+    "PixelArtPaletteGenerator": PixelArtPaletteGenerator,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "PixelArtAddDitherPattern": "🕹️PixelArt Add Dither Pattern",
     "PixelArtDetectorSave": "🕹️PixelArt Detector (+Save)",
     "PixelArtDetectorToImage": "🕹️PixelArt Detector (Image->)",
     "PixelArtDetectorConverter": "🎨PixelArt Palette Converter",
-    "PixelArtLoadPalettes": "🎨PixelArt Palette Loader"
+    "PixelArtLoadPalettes": "🎨PixelArt Palette Loader",
+    "PixelArtPaletteGenerator": "🎨PixelArt Palette Generator"
 }
