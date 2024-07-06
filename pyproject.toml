@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-pixelart-detector"
 description = "This node manipulates the pixel art image in ways that it should look pixel perfect (downscales, changes palette, upscales etc.)."
-version = "1.0.0"
+version = "1.5.2"
 license = "LICENSE"
 dependencies = ["opencv-python>=4.8.0", "Pillow", "numpy~=1.23.5", "torch", "scipy~=1.11.3"]
 
@@ -10,6 +10,6 @@ Repository = "https://github.com/dimtoneff/ComfyUI-PixelArt-Detector"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "dimtoneff"
 DisplayName = "ComfyUI-PixelArt-Detector"
-Icon = ""
+Icon = "https://raw.githubusercontent.com/dimtoneff/ComfyUI-PixelArt-Detector/main/examples/community/image-041.jpg"
