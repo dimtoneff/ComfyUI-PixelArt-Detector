@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector v1.5.2
+# ComfyUI PixelArt Detector v1.6.0
 
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
@@ -9,6 +9,23 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 ![](./examples/community/image-039.jpg) ![](./examples/community/image-040.jpg) ![](./examples/community/image-042.jpg) ![](./examples/community/image-041.jpg) ![](./examples/community/image-044.jpg)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
+
+**Update 1.6.0**:
+
+* **Refactored `PixelArtDetectorConverter` node**:
+  * Separated quantization methods from reducing methods.
+  * Fixed dithering.
+  * Added more dynamic widget show/hide logic.
+* **Workflow Updates**:
+  * Updated and moved all workflows to `example_workflows` directory.
+  * Added images for workflows.
+  * Added a new workflow for the new `PixelArtPaletteGenerator` node
+* **Compatibility & Dependencies**:
+  * Compatible with ComfyUI v0.3.49.
+  * Bumped some requirements versions and fixed numpy versioning error.
+  * Adjusted Javascript files according to the new ComfyUI frontend.
+* **New Node**:
+  * Introduced `PixelArtPaletteGenerator` for generating palettes from images Thanx @za-wa-n-go
 
 **Update 1.5.2**:
 
@@ -65,12 +82,14 @@ quantization.
 
 Pixel Art manipulation code based on: https://github.com/Astropulse/pixeldetector
 
-This adds 4 custom nodes:
+This adds 6 custom nodes:
 
 * __PixelArt Detector (+Save)__ - this node is All in One reduce palette, resize, saving image node
 * __PixelArt Detector (Image->)__ - this node will downscale and reduce the palette and forward the image to another node
 * __PixelArt Palette Converter__ - this node will change the palette of your input. There are a couple of embedded palettes. Use the Palette Loader for more
 * __PixelArt Palette Loader__ - this node comes with a lot of custom palettes which can be an input to the PixelArt Palette Converter "paletteList" input. Optional GRIDS preview of all palettes
+* __PixelArt Palette Generator__ - this node generates a color palette from an input image.
+* __PixelArtAddDitherPattern__ - this node adds a dither pattern to the image.
 
 The plugin also adds a script to Comfy to drag and drop generated webp|jpeg files into the UI to load the workflows.
 
@@ -100,6 +119,21 @@ Original "Save_as_webp" node repo: https://github.com/Kaharos94/ComfyUI-Saveaswe
 If you don't want to use "Save_as_webp" nodes, just delete them from my workflow in **workflow_webp.json** and add the default "Save Image" node to save as PNG (or use the default **workflow.json**)
 
 Restart ComfyUI afterwards.
+
+### New node: "PixelArt Palette Generator"
+
+This node can generate a color palette from a given image. You can specify the number of colors and the layout of the generated palette image.
+
+![](./palette_generator.jpg)
+
+### Extra info about the "PixelArt Palette Generator" Node:
+
+* **colors**: The number of colors to be generated in the palette.
+* **mode**: The layout of the generated palette image.
+    * **Chart**: A grid layout for the colors.
+    * **back_to_back**: A horizontal strip of colors.
+
+The node outputs an image of the palette and a list of colors that can be used with the `PixelArt Palette Converter` node.
 
 # Usage
 
@@ -137,9 +171,6 @@ Output:
 
 ![](./examples/PixelArt_00071_.webp)
 
-Workflow WEBP (drag & drop):
-![](./img2img_webp.png)
-
 Feel free to experiment!
 Free web tool for pixel art: https://www.pixilart.com/draw
 
@@ -163,12 +194,15 @@ There is an option to save a JPEG alongside the webp file.
     * **Image.quantize**: uses PIL Image functions to reduce colors & replace palettes. You can change the reduce algo with **"image_quantize_reduce_method"**
     * **Grid.pixelate**: a custom algo to exchange palettes. Slow when **grid_pixelate_grid_scan_size** is 1
     * **NP.quantize**: a custom algo to exchange paletes. Using fast numpy arrays. Slower than Image.quantize
-    * **OpenCV.kmeans.reduce**: using the OpenCV library to reduce colors. **Used only when reducing colors before the pallete swap**. Palette exchange is done with Image.quantize. It is slow but good
-      when attempts & iterations are higher. You can change the way it picks colors with the option **"opencv_kmeans_centers"**.
 * **grid_pixelate_grid_scan_size** option is for the pixelize grid.Pixelate option. Size of 1 is pixel by pixel. Very slow. Increasing the size improves speed but kills quality. Experiment or not use
   that option.
 * **resize_w** & **resize_h**: it will downscale or upscale the end result to these sizes
-* **reduce_colos_before_palette_swap**: it's going to reduce colors with either Image.quantize or OpenCV.kmeans.
+* **reduce_colors_before_palette_swap**: it's going to reduce colors with either Image.quantize or one of the other algos.
+* **reduce_colors_method**: The algorithm to use for color reduction.
+    * **Image.quantize**: uses PIL Image functions to reduce colors. Fast.
+    * **OpenCV.kmeans.reduce**: using the OpenCV library to reduce colors. It is slow but good when attempts & iterations are higher. You can change the way it picks colors with the option **"opencv_kmeans_centers"**.
+    * **Pycluster.kmeans.reduce**: using the Pyclustering library to reduce colors with the K-Means algorithm.
+    * **Pycluster.kmedians.reduce**: using the Pyclustering library to reduce colors with the K-Medians algorithm.
 * **reduce_colors_max_colors**: the colors count to reduce the image to
 * **apply_pixeldetector_max_colors**: use the Astropulse's PixelDetector to grab the max dominant colors.
 * **image_quantize_reduce_method**: the method used from Image.quantize pixelize option to reduce colors. MAXCOVERAGE seems good for pixel art. But try the rest too.
@@ -178,6 +212,7 @@ There is an option to save a JPEG alongside the webp file.
     * **KMEANS_PP_CENTERS**: it first iterates the whole image to determine the probable centers and then starts to converge. Slow but will yield optimum and consistent results for same input image.
 * **opencv_kmeans_attempts**: how many times to attempt finding the best colors to reduce the image to
 * **opencv_criteria_max_iterations**: how many iterations per attempt
+* **pycluster_kmeans_metrics**: The metric to use for Pycluster algorithms.
 * **cleanup_colors**: given a threshold, iterate over the image and eliminate less used colors. May be combined with the **reduce_colos_before_palette_swap** option for optimal clean up. Or optimal
   break of the image :)
 * **cleanup_pixels_threshold**: the threshold for the cleanup function. Good values: 0.01-0.05. If it eliminates too much, lower the value. **LOWER VALUE = MORE COLORS**
@@ -197,7 +232,7 @@ Included palettes from: https://lospec.com/palette-list
 * use the default "Preview Image" node to preview the grids (preferably)
 * play with the settings
 
-![Grids](./example_workflows/grid.png)
+![Grids](./example_workflows/grid.jpg)
 
 **Community examples:**
 
@@ -217,8 +252,7 @@ Included palettes from: https://lospec.com/palette-list
 
 Nodes:
 
-![Example](./nodes.PNG)
-![](./dither_node.png)
+![Example](./nodes.jpg)
 
 Workflow view:
 

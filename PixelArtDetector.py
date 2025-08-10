@@ -29,6 +29,8 @@ SOFTWARE.
 # implementation of https://github.com/Astropulse/pixeldetector to a ComfyUI extension node + other goodies
 # by dimtoneff
 import hashlib
+import json, time
+from datetime import datetime
 import nodes
 import numpy as np
 import warnings
@@ -36,8 +38,6 @@ import warnings
 from comfy.cli_args import args
 from enum import Enum
 
-import json, time
-from datetime import datetime
 from .pixelUtils import *
 
 if not hasattr(np, "warnings"):
@@ -58,7 +58,133 @@ class SETTINGS(Enum):
     # it will resize the image if user settings are above this treshold
     MIN_RESIZE_TRESHOLD: int = 64
 
+class PixelArtPaletteGenerator:
+    def __init__(self):
+        pass
 
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "colors": ("INT", {"default": 16, "min": 8, "max": 256, "step": 1}),
+                "mode": (["Chart", "back_to_back"],),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE","LIST")
+    RETURN_NAMES = ("image","color_palettes")
+    FUNCTION = "image_generate_palette"
+
+    CATEGORY = "image/PixelArt🕹️"
+
+    def generate_palette(self, img, n_colors=16, cell_size=128, padding=0, mode='chart'):
+        _, cluster_centers = pycluster_kmeans_fixed(img, k=n_colors)
+
+        # Get the sorted indices based on luminance
+        luminance = np.sqrt(np.dot(cluster_centers, [0.299, 0.587, 0.114]))
+        sorted_indices = np.argsort(luminance)
+
+        # Rearrange the cluster centers and luminance based on sorted indices
+        cluster_centers = cluster_centers[sorted_indices]
+        luminance = luminance[sorted_indices]
+
+        # Group colors by their individual types
+        reds = []
+        greens = []
+        blues = []
+        others = []
+
+        for i in range(n_colors):
+            color = cluster_centers[i]
+            color_type = np.argmax(color)  # Find the dominant color component
+
+            if color_type == 0:
+                reds.append((color, luminance[i]))
+            elif color_type == 1:
+                greens.append((color, luminance[i]))
+            elif color_type == 2:
+                blues.append((color, luminance[i]))
+            else:
+                others.append((color, luminance[i]))
+
+        # Sort each color group by luminance
+        reds.sort(key=lambda x: x[1])
+        greens.sort(key=lambda x: x[1])
+        blues.sort(key=lambda x: x[1])
+        others.sort(key=lambda x: x[1])
+
+        # Combine the sorted color groups
+        sorted_colors = reds + greens + blues + others
+
+        if mode == 'back_to_back':
+            # Calculate the size of the palette image based on the number of colors
+            palette_width = n_colors * cell_size
+            palette_height = cell_size
+        else:
+            # Calculate the number of rows and columns based on the number of colors
+            num_rows = int(np.sqrt(n_colors))
+            num_cols = int(np.ceil(n_colors / num_rows))
+
+            # Calculate the size of the palette image based on the number of rows and columns
+            palette_width = num_cols * cell_size
+            palette_height = num_rows * cell_size
+
+        palette_size = (palette_width, palette_height)
+
+        palette = Image.new('RGB', palette_size, color='white')
+        
+        hex_palette = []
+        for i, (color, _) in enumerate(sorted_colors):
+            if mode == 'back_to_back':
+                cell_x = i * cell_size
+                cell_y = 0
+            else:
+                row = i % num_rows
+                col = i // num_rows
+                cell_x = col * cell_size
+                cell_y = row * cell_size
+
+            cell_width = cell_size
+            cell_height = cell_size
+
+            color = tuple(color)
+
+            cell = Image.new('RGB', (cell_width, cell_height), color=color)
+            palette.paste(cell, (cell_x, cell_y))
+
+            hex_palette.append('#%02x%02x%02x' % color)
+
+        return palette, '\n'.join(hex_palette)
+
+    def image_generate_palette(self, image, colors=16, mode="chart"):
+
+        if len(image) > 1:
+            palette_list = []
+            for img in image:
+                img = tensor2pil(img)
+                palette_image, hex_palette = self.generate_palette(img, colors, 128, 10, mode.lower())
+                palette_bytes = self.hex_palette_to_bytes(hex_palette)
+                palette_dict = {"p": palette_bytes, "a": "Arbitrary identifier or annotation."}
+                palette_list.append(palette_dict)
+            return (torch.cat([pil2tensor(palette_image) for palette_image, _ in palette_list], dim=0), palette_list)
+        else:
+            image = tensor2pil(image[0])
+            palette_image, hex_palette = self.generate_palette(image, colors, 128, 10, mode.lower())
+            palette_bytes = self.hex_palette_to_bytes(hex_palette)
+            palette_dict = {"p": palette_bytes, "a": "Arbitrary identifier or annotation."}
+            return (pil2tensor(palette_image), [palette_dict,])
+
+    def hex_palette_to_bytes(self, hex_palette):
+        """Convert a hex color palette to bytes."""
+        hex_colors = hex_palette.split('\n')
+        palette_bytes = []
+        for hex_color in hex_colors:
+            # Remove the '#' character and convert to integer RGB values.
+            rgb = tuple(int(hex_color[i:i+2], 16) for i in (1, 3, 5))
+            palette_bytes.extend(rgb)
+        return bytes(palette_bytes)
+    
 class PixelArtLoadPalettes(nodes.LoadImage):
     """
     A node that scans images in a directory and returns the palette for the seleced image or for all images to display in a Grid
@@ -637,6 +763,7 @@ NODE_CLASS_MAPPINGS = {
     "PixelArtDetectorToImage": PixelArtDetectorToImage,
     "PixelArtDetectorConverter": PixelArtDetectorConverter,
     "PixelArtLoadPalettes": PixelArtLoadPalettes,
+    "PixelArtPaletteGenerator": PixelArtPaletteGenerator,
     "PixelArtAddDitherPattern": PixelArtAddDitherPattern
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -644,5 +771,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "PixelArtDetectorToImage": "🕹️PixelArt Detector (Image->)",
     "PixelArtDetectorConverter": "🎨PixelArt Palette Converter",
     "PixelArtLoadPalettes": "🎨PixelArt Palette Loader",
+    "PixelArtPaletteGenerator": "🎨PixelArt Palette Generator",
     "PixelArtAddDitherPattern": "📺PixelArt Add Dither Pattern"
 }

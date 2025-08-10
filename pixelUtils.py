@@ -697,3 +697,18 @@ def pycluster_kmeans(img_input: Image, kmin: int = 2, kmax: int = 20, metric: st
 
 def pycluster_kmedians(img_input: Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
     return pycluster_k(img_input, kmedians.kmedians, "get_medians", kmin, kmax, metric)
+
+
+def pycluster_kmeans_fixed(img_input: Image, k: int = 16, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
+    img, nb_pixels, flat_img = get_img_data(img_input)
+
+    amount_candidates = center_initializer.kmeans_plusplus_initializer.FARTHEST_CENTER_CANDIDATE
+    centers: [np.ndarray] = center_initializer.kmeans_plusplus_initializer(
+        flat_img, k, amount_candidates
+    ).initialize()
+
+    clusterer: Union[kmeans.kmeans, kmedians.kmedians] = kmeans.kmeans(flat_img, centers, metric=getPyclusterMetric(metric))
+    clusterer.process()
+    clusters: [[int]] = clusterer.get_clusters()
+    representatives: [[float]] = clusterer.get_centers()
+    return process_pycluster_result(flat_img, clusters, representatives, img.shape)
