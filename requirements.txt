@@ -1,7 +1,6 @@
 pyclustering>=0.10.1
-hqx>=1.0
 opencv-python>=4.8.0
 Pillow
-numpy~=1.23.5
+numpy>=1.25.0
 torch
-scipy~=1.11.3
+scipy>=1.11.3

@@ -5,9 +5,10 @@ import sys
 
 import folder_paths
 
+from .PixelArtDetector import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
+
 try:
     from pyclustering.cluster import kmeans
-    import hqx
     import cv2
 except ImportError:
     print(f"## PixelArtDetector: installing dependencies")
@@ -27,18 +28,5 @@ print("### Loading: PixelArtDetector")
 
 comfy_path = os.path.dirname(folder_paths.__file__)
 
-
-def setup_js():
-    webp_path = os.path.dirname(__file__)
-    js_dest_path = os.path.join(comfy_path, "web", "extensions", "pixelArtDetector")
-    js_src_path = os.path.join(webp_path, "pixelArtDetector")
-
-    print("Copying PixelArtDetector JS files for Workflow loading")
-    shutil.copytree(js_src_path, js_dest_path, dirs_exist_ok=True)
-
-
-setup_js()
-
-from .PixelArtDetector import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
-
-__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
+WEB_DIRECTORY = "./web/js"
+__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS', 'WEB_DIRECTORY']

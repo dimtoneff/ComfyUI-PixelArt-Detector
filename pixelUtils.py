@@ -36,6 +36,11 @@ to_4tuple = _ntuple(4)
 to_ntuple = _ntuple
 
 
+def printColorInfo(text, color='\033[92m'):
+    CEND = '\033[0m'
+    print(f"{color}{text}{CEND}")
+
+
 def scanFilesInDir(input_dir):
     return sorted([f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f))])
 
@@ -121,7 +126,9 @@ def paletteToTuples(palette, n):
 
 # Tensor to PIL
 def tensor2pil(image):
-    return Image.fromarray(np.clip(255. * image.cpu().numpy().squeeze(), 0, 255).astype(np.uint8))
+    if image.dim() == 4 and image.shape[0] == 1:
+        image = image.squeeze(0)
+    return Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8))
 
 
 def pil2tensor(image):

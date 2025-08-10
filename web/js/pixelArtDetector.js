@@ -1,9 +1,80 @@
-import { app } from "/scripts/app.js";
+import { app } from "../../scripts/app.js";
+import { findWidgetByName, doesInputWithNameExist, updateNodeHeight, toggleWidget } from './utils.js'
+
+function togglePixelizeWidgets(node, pixelizeValue) {
+    const widgetsConfig = {
+        "Image.quantize": ["image_quantize_reduce_method"],
+        "Grid.pixelate": ["grid_pixelate_grid_scan_size"],
+        "NP.quantize": [],
+        "OpenCV.kmeans.reduce": [
+            "opencv_settings",
+            "opencv_kmeans_centers",
+            "opencv_kmeans_attempts",
+            "opencv_criteria_max_iterations",
+        ],
+        "Pycluster.kmeans.reduce": ["pycluster_kmeans_metrics"],
+        "Pycluster.kmedians.reduce": ["pycluster_kmeans_metrics"],
+    };
+
+    const allToggleableWidgets = [...new Set(Object.values(widgetsConfig).flat())];
+
+    allToggleableWidgets.forEach(widgetName => {
+        const widget = findWidgetByName(node, widgetName);
+        if (widget) {
+            toggleWidget(node, widget, false);
+        }
+    });
+
+    const widgetsToShow = widgetsConfig[pixelizeValue];
+    if (widgetsToShow) {
+        widgetsToShow.forEach(widgetName => {
+            const widget = findWidgetByName(node, widgetName);
+            if (widget) {
+                toggleWidget(node, widget, true);
+            } else {
+                console.log("Widget not found:", widgetName);
+            }
+        });
+    }
+
+    updateNodeHeight(node);
+}
+
 
 app.registerExtension({
 	name: "dimtoneff.pixelArtDetector",
-setup(app,file){
+    async beforeRegisterNodeDef(nodeType, nodeData, app) {
+        if (nodeData.name === "PixelArtDetectorConverter") {
+            const onNodeCreated = nodeType.prototype.onNodeCreated;
+            nodeType.prototype.onNodeCreated = function () {
+                const onNodeCreatedResult = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
+                
+                const pixelizeWidget = this.widgets.find((w) => w.name === "pixelize");
+                if(pixelizeWidget) {
+                    // Store original callback
+                    const originalCallback = pixelizeWidget.callback;
+                    pixelizeWidget.callback = (value) => {
+                        // Call original callback if it exists
+                        if(originalCallback) {
+                            originalCallback.call(this, value);
+                        }
+                        // Toggle widgets
+                        togglePixelizeWidgets(this, value);
+                    };
+                }
 
+                // Set initial visibility
+                setTimeout(() => {
+                    if (pixelizeWidget) {
+                        togglePixelizeWidgets(this, pixelizeWidget.value);
+                    }
+                }, 1);
+
+                return onNodeCreatedResult;
+            };
+        }
+    },
+	setup(app,file){
 async function getWebpExifData(webpFile) {
 	const reader = new FileReader();
 	reader.readAsArrayBuffer(webpFile);

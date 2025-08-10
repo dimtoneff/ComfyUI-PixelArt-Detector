@@ -30,7 +30,8 @@ SOFTWARE.
 # by dimtoneff
 import hashlib
 import nodes
-import hqx
+import numpy as np
+import warnings
 
 from comfy.cli_args import args
 from enum import Enum
@@ -38,6 +39,10 @@ from enum import Enum
 import json, time
 from datetime import datetime
 from .pixelUtils import *
+
+if not hasattr(np, "warnings"):
+    np.warnings = warnings
+
 
 
 class GRID_SETTING(Enum):
@@ -116,82 +121,43 @@ class PixelArtLoadPalettes(nodes.LoadImage):
         return (palettes,)
 
     @classmethod
-    def IS_CHANGED(cls, image):
-        image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, image))
+    def IS_CHANGED(cls, image, render_all_palettes_in_grid, grid_settings, paletteList_grid_font_size,
+                   paletteList_grid_font_color, paletteList_grid_background,
+                   paletteList_grid_cols, paletteList_grid_add_border, paletteList_grid_border_width):
+        
         m = hashlib.sha256()
-        with open(image_path, 'rb') as f:
-            m.update(f.read())
+
+        if render_all_palettes_in_grid:
+            # Hash all images in the directory
+            files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR)))
+            for file in files:
+                image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, file))
+                with open(image_path, 'rb') as f:
+                    m.update(f.read())
+            
+            # Hash all grid settings
+            m.update(str(paletteList_grid_font_size).encode())
+            m.update(paletteList_grid_font_color.encode())
+            m.update(paletteList_grid_background.encode())
+            m.update(str(paletteList_grid_cols).encode())
+            m.update(str(paletteList_grid_add_border).encode())
+            m.update(str(paletteList_grid_border_width).encode())
+
+        else:
+            # Hash only the selected image
+            image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, image))
+            with open(image_path, 'rb') as f:
+                m.update(f.read())
+
         return m.digest().hex()
 
     @classmethod
-    def VALIDATE_INPUTS(cls, image):
-        image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, image))
-        if not Path(image_path).is_file():
-            return "Invalid image file: {}".format(image)
-
+    def VALIDATE_INPUTS(cls, image, render_all_palettes_in_grid, **kwargs):
+        if not render_all_palettes_in_grid:
+            image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, image))
+            if not Path(image_path).is_file():
+                return f"Invalid image file: {image}"
         return True
-
-
-class PixelArtHqxUpscaler:
-    """
-    Add the HQX upscaler
-    """
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {"required": {
-            "image": ("IMAGE",),
-            "hqx_scale_by": ("INT", {"default": 4, "min": 2, "max": 4, "step": 1},),
-        }}
-
-    RETURN_TYPES = ("IMAGE",)
-    FUNCTION = "process"
-
-    CATEGORY = "image/PixelArt🕹️/Upscalers"
-
-    def process(self, image, hqx_scale_by):
-        pilImage = tensor2pil(image)
-        pilImage = hqx.hqx_scale(pilImage, hqx_scale_by)
-        tensor = pil2tensor(pilImage)
-        return (tensor,)
-
-
-class PixelArtPyclusterKmeansReducers:
-    """
-    Add the Pycluster.kmeans & Pycluster.kmedians reducers
-    """
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {"required": {
-            "image": ("IMAGE",),
-            "algo": (["Pycluster.kmeans.reduce", "Pycluster.kmedians.reduce"], {"default": "Pycluster.kmeans.reduce"}),
-            "pycluster_kmeans_metrics": (["EUCLIDEAN", "EUCLIDEAN_SQUARE", "MANHATTAN", "CHEBYSHEV", "CANBERRA", "CHI_SQUARE"], {"default": "EUCLIDEAN_SQUARE"}),
-            "max_colors": ("INT", {"default": 128, "min": 1, "max": 256, "step": 1},),
-            "apply_pixeldetector_max_colors": (
-                "BOOLEAN", {"default": True, "label_on": "enabled", "label_off": "disabled"}),
-        }}
-
-    RETURN_TYPES = ("IMAGE",)
-    FUNCTION = "process"
-
-    CATEGORY = "image/PixelArt🕹️/Reducers🧹"
-
-    def process(self, image, algo, pycluster_kmeans_metrics, max_colors, apply_pixeldetector_max_colors):
-        pilImage = tensor2pil(image)
-        best_k = determine_best_k(pixel_detect(pilImage),
-                                  max_colors) if apply_pixeldetector_max_colors else max_colors
-
-        if algo == "Pycluster.kmeans.reduce":
-            # Use pyclustering.kmeans to reduce the colors of the image
-            pilImage, _ = pycluster_kmeans(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
-        else:
-            # Use pyclustering.kmedians to reduce the colors of the image
-            pilImage, _ = pycluster_kmedians(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
-
-        tensor = pil2tensor(pilImage)
-
-        return (tensor,)
 
 
 class PixelArtAddDitherPattern:
@@ -286,7 +252,7 @@ class PixelArtDetectorConverter:
             "images": ("IMAGE",),
             "palette": (["NES", "GAMEBOY"], {"default": "GAMEBOY"}),
             "pixelize": (
-                ["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce"],
+                ["Image.quantize", "Grid.pixelate", "NP.quantize", "OpenCV.kmeans.reduce", "Pycluster.kmeans.reduce", "Pycluster.kmedians.reduce"],
                 {"default": "Image.quantize"}),
             "grid_pixelate_grid_scan_size": ("INT", {"default": 2, "min": 1, "max": 32, "step": 1},),
             "resize_w": ("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
@@ -306,6 +272,7 @@ class PixelArtDetectorConverter:
             "opencv_kmeans_centers": (["RANDOM_CENTERS", "PP_CENTERS"], {"default": "RANDOM_CENTERS"}),
             "opencv_kmeans_attempts": ("INT", {"default": 10, "min": 1, "max": 150, "step": 1},),
             "opencv_criteria_max_iterations": ("INT", {"default": 10, "min": 1, "max": 150, "step": 1},),
+            "pycluster_kmeans_metrics": (["EUCLIDEAN", "EUCLIDEAN_SQUARE", "MANHATTAN", "CHEBYSHEV", "CANBERRA", "CHI_SQUARE"], {"default": "EUCLIDEAN_SQUARE"}),
             "cleanup": ("STRING", {"multiline": True,
                                    "default": "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\n" +
                                               "Optionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05"
@@ -328,7 +295,7 @@ class PixelArtDetectorConverter:
     def process(self, images, palette, pixelize, grid_pixelate_grid_scan_size, resize_w, resize_h,
                 reduce_colors_before_palette_swap, reduce_colors_max_colors, apply_pixeldetector_max_colors,
                 image_quantize_reduce_method, opencv_settings, opencv_kmeans_centers, opencv_kmeans_attempts,
-                opencv_criteria_max_iterations, cleanup, cleanup_colors, cleanup_pixels_threshold, dither, paletteList=None
+                opencv_criteria_max_iterations, pycluster_kmeans_metrics, cleanup, cleanup_colors, cleanup_pixels_threshold, dither, paletteList=None
                 ):
         isGrid = (paletteList is not None and len(paletteList) > 1)
 
@@ -358,7 +325,17 @@ class PixelArtDetectorConverter:
                 start = round(time.time() * 1000)
                 best_k = determine_best_k(pixel_detect(pilImage),
                                           reduce_colors_max_colors) if apply_pixeldetector_max_colors else reduce_colors_max_colors
-                if pixelize == "OpenCV.kmeans.reduce":
+                if pixelize == "Pycluster.kmeans.reduce":
+                    # Use pyclustering.kmeans to reduce the colors of the image
+                    pilImage, _ = pycluster_kmeans(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
+                    print(
+                        f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmeans{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
+                elif pixelize == "Pycluster.kmedians.reduce":
+                    # Use pyclustering.kmedians to reduce the colors of the image
+                    pilImage, _ = pycluster_kmedians(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
+                    print(
+                        f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmedians{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
+                elif pixelize == "OpenCV.kmeans.reduce":
                     # Use OpenCV to reduce the colors of the image
                     cv2Image = convert_from_image_to_cv2(pilImage)
                     cv2Image = cv2_quantize(cv2Image, best_k, get_cv2_kmeans_flags(opencv_kmeans_centers), opencv_kmeans_attempts,
@@ -657,16 +634,12 @@ NODE_CLASS_MAPPINGS = {
     "PixelArtDetectorToImage": PixelArtDetectorToImage,
     "PixelArtDetectorConverter": PixelArtDetectorConverter,
     "PixelArtLoadPalettes": PixelArtLoadPalettes,
-    "PixelArtAddDitherPattern": PixelArtAddDitherPattern,
-    "PixelArtHqxUpscaler": PixelArtHqxUpscaler,
-    "PixelArtPyclusterKmeansReducers": PixelArtPyclusterKmeansReducers
+    "PixelArtAddDitherPattern": PixelArtAddDitherPattern
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "PixelArtDetectorSave": "🕹️PixelArt Detector (+Save)",
     "PixelArtDetectorToImage": "🕹️PixelArt Detector (Image->)",
     "PixelArtDetectorConverter": "🎨PixelArt Palette Converter",
     "PixelArtLoadPalettes": "🎨PixelArt Palette Loader",
-    "PixelArtAddDitherPattern": "📺PixelArt Add Dither Pattern",
-    "PixelArtHqxUpscaler": "📺PixelArt HQX Upscaler",
-    "PixelArtPyclusterKmeansReducers": "🧹PixelArt Pycluster Reducers"
+    "PixelArtAddDitherPattern": "📺PixelArt Add Dither Pattern"
 }
