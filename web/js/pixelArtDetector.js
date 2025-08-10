@@ -1,22 +1,41 @@
 import { app } from "../../scripts/app.js";
 import { findWidgetByName, doesInputWithNameExist, updateNodeHeight, toggleWidget } from './utils.js'
 
-function togglePixelizeWidgets(node, pixelizeValue) {
-    const widgetsConfig = {
-        "Image.quantize": ["image_quantize_reduce_method"],
-        "Grid.pixelate": ["grid_pixelate_grid_scan_size"],
-        "NP.quantize": [],
-        "OpenCV.kmeans.reduce": [
-            "opencv_settings",
-            "opencv_kmeans_centers",
-            "opencv_kmeans_attempts",
-            "opencv_criteria_max_iterations",
-        ],
-        "Pycluster.kmeans.reduce": ["pycluster_kmeans_metrics"],
-        "Pycluster.kmedians.reduce": ["pycluster_kmeans_metrics"],
-    };
+const pixelizeWidgetsConfig = {
+    "Image.quantize": [],
+    "Grid.pixelate": ["grid_pixelate_grid_scan_size"],
+    "NP.quantize": [],
+};
 
-    const allToggleableWidgets = [...new Set(Object.values(widgetsConfig).flat())];
+const reduceColorsWidgetsConfig = {
+    "Image.quantize": ["image_quantize_reduce_method"],
+    "OpenCV.kmeans.reduce": [
+        "opencv_settings",
+        "opencv_kmeans_centers",
+        "opencv_kmeans_attempts",
+        "opencv_criteria_max_iterations",
+    ],
+    "Pycluster.kmeans.reduce": ["pycluster_kmeans_metrics"],
+    "Pycluster.kmedians.reduce": ["pycluster_kmeans_metrics"],
+};
+
+function updatePixelArtDetectorConverterWidgets(node) {
+    const pixelizeWidget = findWidgetByName(node, "pixelize");
+    const reduceColorsWidget = findWidgetByName(node, "reduce_colors_method");
+    const reduceColorsBeforeSwapWidget = findWidgetByName(node, "reduce_colors_before_palette_swap");
+
+    if (!pixelizeWidget || !reduceColorsWidget || !reduceColorsBeforeSwapWidget) {
+        return;
+    }
+
+    const pixelizeValue = pixelizeWidget.value;
+    const reduceColorsValue = reduceColorsWidget.value;
+    const reduceColorsEnabled = reduceColorsBeforeSwapWidget.value;
+
+    // First, hide all toggleable widgets
+    const allPixelizeWidgets = Object.values(pixelizeWidgetsConfig).flat();
+    const allReduceColorsWidgets = Object.values(reduceColorsWidgetsConfig).flat();
+    const allToggleableWidgets = [...new Set([...allPixelizeWidgets, ...allReduceColorsWidgets, "reduce_colors_method", "reduce_colors_max_colors", "apply_pixeldetector_max_colors"])];
 
     allToggleableWidgets.forEach(widgetName => {
         const widget = findWidgetByName(node, widgetName);
@@ -25,21 +44,32 @@ function togglePixelizeWidgets(node, pixelizeValue) {
         }
     });
 
-    const widgetsToShow = widgetsConfig[pixelizeValue];
-    if (widgetsToShow) {
-        widgetsToShow.forEach(widgetName => {
+    // Second, show the widgets required by the pixelize dropdown
+    const pixelizeWidgetsToShow = pixelizeWidgetsConfig[pixelizeValue] || [];
+    pixelizeWidgetsToShow.forEach(widgetName => {
+        const widget = findWidgetByName(node, widgetName);
+        if (widget) {
+            toggleWidget(node, widget, true);
+        }
+    });
+
+    // Third, show the widgets required by the reduce_colors checkbox and dropdown
+    if (reduceColorsEnabled) {
+        toggleWidget(node, findWidgetByName(node, "reduce_colors_method"), true);
+        toggleWidget(node, findWidgetByName(node, "reduce_colors_max_colors"), true);
+        toggleWidget(node, findWidgetByName(node, "apply_pixeldetector_max_colors"), true);
+
+        const reduceColorsWidgetsToShow = reduceColorsWidgetsConfig[reduceColorsValue] || [];
+        reduceColorsWidgetsToShow.forEach(widgetName => {
             const widget = findWidgetByName(node, widgetName);
             if (widget) {
                 toggleWidget(node, widget, true);
-            } else {
-                console.log("Widget not found:", widgetName);
             }
         });
     }
 
     updateNodeHeight(node);
 }
-
 
 app.registerExtension({
 	name: "dimtoneff.pixelArtDetector",
@@ -48,27 +78,45 @@ app.registerExtension({
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function () {
                 const onNodeCreatedResult = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
-                
-                const pixelizeWidget = this.widgets.find((w) => w.name === "pixelize");
-                if(pixelizeWidget) {
-                    // Store original callback
+
+                const pixelizeWidget = findWidgetByName(this, "pixelize");
+                const reduceColorsWidget = findWidgetByName(this, "reduce_colors_method");
+                const reduceColorsBeforeSwapWidget = findWidgetByName(this, "reduce_colors_before_palette_swap");
+
+                const update = () => updatePixelArtDetectorConverterWidgets(this);
+
+                if (pixelizeWidget) {
                     const originalCallback = pixelizeWidget.callback;
                     pixelizeWidget.callback = (value) => {
-                        // Call original callback if it exists
-                        if(originalCallback) {
+                        if (originalCallback) {
                             originalCallback.call(this, value);
                         }
-                        // Toggle widgets
-                        togglePixelizeWidgets(this, value);
+                        update();
+                    };
+                }
+
+                if (reduceColorsWidget) {
+                    const originalCallback = reduceColorsWidget.callback;
+                    reduceColorsWidget.callback = (value) => {
+                        if (originalCallback) {
+                            originalCallback.call(this, value);
+                        }
+                        update();
+                    };
+                }
+
+                if (reduceColorsBeforeSwapWidget) {
+                    const originalCallback = reduceColorsBeforeSwapWidget.callback;
+                    reduceColorsBeforeSwapWidget.callback = (value) => {
+                        if (originalCallback) {
+                            originalCallback.call(this, value);
+                        }
+                        update();
                     };
                 }
 
                 // Set initial visibility
-                setTimeout(() => {
-                    if (pixelizeWidget) {
-                        togglePixelizeWidgets(this, pixelizeWidget.value);
-                    }
-                }, 1);
+                setTimeout(update, 1);
 
                 return onNodeCreatedResult;
             };

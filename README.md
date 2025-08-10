@@ -197,7 +197,7 @@ Included palettes from: https://lospec.com/palette-list
 * use the default "Preview Image" node to preview the grids (preferably)
 * play with the settings
 
-![Grids](./grid.png)
+![Grids](./example_workflows/grid.png)
 
 **Community examples:**
 
