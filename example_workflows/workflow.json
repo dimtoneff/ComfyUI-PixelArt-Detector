@@ -1,42 +1,9 @@
 {
-  "last_node_id": 123,
-  "last_link_id": 216,
+  "id": "82d400d7-0fa8-4ef3-b0a1-2f193da9600d",
+  "revision": 0,
+  "last_node_id": 125,
+  "last_link_id": 220,
   "nodes": [
-    {
-      "id": 14,
-      "type": "PrimitiveNode",
-      "pos": [
-        -60.48336494445801,
-        19.285940277099314
-      ],
-      "size": {
-        "0": 300,
-        "1": 160
-      },
-      "flags": {},
-      "order": 0,
-      "mode": 0,
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            18
-          ],
-          "widget": {
-            "name": "text"
-          },
-          "slot_index": 0
-        }
-      ],
-      "title": "Negative Prompt (Text)",
-      "properties": {},
-      "widgets_values": [
-        ""
-      ],
-      "color": "#322",
-      "bgcolor": "#533"
-    },
     {
       "id": 36,
       "type": "Note",
@@ -44,13 +11,15 @@
         -74,
         -470
       ],
-      "size": {
-        "0": 315.70074462890625,
-        "1": 147.9551239013672
-      },
+      "size": [
+        315.70074462890625,
+        147.9551239013672
+      ],
       "flags": {},
-      "order": 1,
+      "order": 0,
       "mode": 0,
+      "inputs": [],
+      "outputs": [],
       "title": "Note - Load Checkpoint BASE",
       "properties": {
         "text": ""
@@ -65,16 +34,18 @@
       "id": 38,
       "type": "Note",
       "pos": [
-        -51.48336494445802,
-        218.28594027709897
+        -51.48336410522461,
+        218.2859344482422
       ],
-      "size": {
-        "0": 284.3257141113281,
-        "1": 123.88604736328125
-      },
+      "size": [
+        284.3257141113281,
+        123.88604736328125
+      ],
       "flags": {},
-      "order": 2,
+      "order": 1,
       "mode": 0,
+      "inputs": [],
+      "outputs": [],
       "title": "Note - Text Prompts",
       "properties": {
         "text": ""
@@ -89,16 +60,18 @@
       "id": 41,
       "type": "Note",
       "pos": [
-        748.2762852724647,
-        -625.6798658708175
+        748.2763061523438,
+        -625.6798706054688
       ],
-      "size": {
-        "0": 320,
-        "1": 120
-      },
+      "size": [
+        320,
+        120
+      ],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
+      "inputs": [],
+      "outputs": [],
       "title": "Note - VAE Decoder",
       "properties": {
         "text": ""
@@ -113,16 +86,18 @@
       "id": 42,
       "type": "Note",
       "pos": [
-        384.4081741093041,
-        383.7042431891819
+        384.4081726074219,
+        383.7042541503906
       ],
-      "size": {
-        "0": 260,
-        "1": 210
-      },
+      "size": [
+        260,
+        210
+      ],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
+      "inputs": [],
+      "outputs": [],
       "title": "Note - Empty Latent Image",
       "properties": {
         "text": ""
@@ -134,43 +109,21 @@
       "bgcolor": "#535"
     },
     {
-      "id": 39,
-      "type": "Note",
-      "pos": [
-        401.55279136151427,
-        45.22986677539596
-      ],
-      "size": {
-        "0": 210,
-        "1": 80
-      },
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "title": "Note - CLIP Encode (BASE)",
-      "properties": {
-        "text": ""
-      },
-      "widgets_values": [
-        "These nodes receive the text from the prompt and use the optimal CLIP settings for the specified checkpoint model (in this case: SDXL Base)"
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 48,
       "type": "Note",
       "pos": [
-        769.2328170166013,
-        646.3826239624018
+        769.2327880859375,
+        646.3826293945312
       ],
-      "size": {
-        "0": 213.90769958496094,
-        "1": 110.17156982421875
-      },
+      "size": [
+        213.90769958496094,
+        110.17156982421875
+      ],
       "flags": {},
-      "order": 6,
+      "order": 4,
       "mode": 0,
+      "inputs": [],
+      "outputs": [],
       "properties": {
         "text": ""
       },
@@ -181,122 +134,42 @@
       "bgcolor": "#653"
     },
     {
-      "id": 4,
-      "type": "CheckpointLoaderSimple",
-      "pos": [
-        -90,
-        -620
-      ],
-      "size": {
-        "0": 350,
-        "1": 100
-      },
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            46
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            47
-          ],
-          "slot_index": 1
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [],
-          "slot_index": 2
-        }
-      ],
-      "title": "Load Checkpoint - BASE",
-      "properties": {
-        "Node name for S&R": "CheckpointLoaderSimple"
-      },
-      "widgets_values": [
-        "sd_xl_base_1.0.safetensors"
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 13,
       "type": "PrimitiveNode",
       "pos": [
-        -60.48336494445801,
-        -180.71405972290043
+        -60.48336410522461,
+        -180.7140655517578
       ],
-      "size": {
-        "0": 300,
-        "1": 160
-      },
+      "size": [
+        300,
+        160
+      ],
       "flags": {},
-      "order": 8,
+      "order": 5,
       "mode": 0,
+      "inputs": [],
       "outputs": [
         {
           "name": "STRING",
           "type": "STRING",
-          "links": [
-            16
-          ],
           "widget": {
             "name": "text"
           },
-          "slot_index": 0
+          "slot_index": 0,
+          "links": [
+            16
+          ]
         }
       ],
       "title": "Positive Prompt (Text)",
-      "properties": {},
+      "properties": {
+        "Run widget replace on values": false
+      },
       "widgets_values": [
         "beautiful young girl on the beach, bikini, blue sky, pixelart"
       ],
       "color": "#232",
       "bgcolor": "#353"
-    },
-    {
-      "id": 5,
-      "type": "EmptyLatentImage",
-      "pos": [
-        364.90407165527347,
-        233.5841723632813
-      ],
-      "size": {
-        "0": 300,
-        "1": 110
-      },
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            27
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "EmptyLatentImage"
-      },
-      "widgets_values": [
-        1024,
-        1024,
-        4
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
     },
     {
       "id": 51,
@@ -305,25 +178,27 @@
         733,
         -401
       ],
-      "size": {
-        "0": 315,
-        "1": 58
-      },
+      "size": [
+        315,
+        58
+      ],
       "flags": {},
-      "order": 10,
+      "order": 6,
       "mode": 0,
+      "inputs": [],
       "outputs": [
         {
           "name": "VAE",
           "type": "VAE",
+          "slot_index": 0,
           "links": [
             57
-          ],
-          "shape": 3,
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
         "Node name for S&R": "VAELoader"
       },
       "widgets_values": [
@@ -337,27 +212,30 @@
         773,
         363
       ],
-      "size": {
-        "0": 210,
-        "1": 82
-      },
+      "size": [
+        210,
+        82
+      ],
       "flags": {},
-      "order": 11,
+      "order": 7,
       "mode": 0,
+      "inputs": [],
       "outputs": [
         {
           "name": "INT",
           "type": "INT",
-          "links": [
-            41
-          ],
           "widget": {
             "name": "steps"
-          }
+          },
+          "links": [
+            41
+          ]
         }
       ],
       "title": "steps",
-      "properties": {},
+      "properties": {
+        "Run widget replace on values": false
+      },
       "widgets_values": [
         20,
         "fixed"
@@ -372,28 +250,31 @@
         771,
         510
       ],
-      "size": {
-        "0": 210,
-        "1": 82
-      },
+      "size": [
+        210,
+        82
+      ],
       "flags": {},
-      "order": 12,
+      "order": 8,
       "mode": 0,
+      "inputs": [],
       "outputs": [
         {
           "name": "INT",
           "type": "INT",
-          "links": [
-            43
-          ],
           "widget": {
             "name": "end_at_step"
           },
-          "slot_index": 0
+          "slot_index": 0,
+          "links": [
+            43
+          ]
         }
       ],
       "title": "end_at_step",
-      "properties": {},
+      "properties": {
+        "Run widget replace on values": false
+      },
       "widgets_values": [
         20,
         "fixed"
@@ -402,16 +283,405 @@
       "bgcolor": "#653"
     },
     {
+      "id": 17,
+      "type": "VAEDecode",
+      "pos": [
+        1071,
+        -258
+      ],
+      "size": [
+        200,
+        50
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 70
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 57
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            210,
+            212,
+            218
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": [],
+      "color": "#332922",
+      "bgcolor": "#593930"
+    },
+    {
+      "id": 121,
+      "type": "PixelArtDetectorToImage",
+      "pos": [
+        1426,
+        -350
+      ],
+      "size": [
+        315,
+        82
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 210
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "shape": 6,
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            211
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-pixelart-detector",
+        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
+        "Node name for S&R": "PixelArtDetectorToImage"
+      },
+      "widgets_values": [
+        false,
+        128
+      ]
+    },
+    {
+      "id": 122,
+      "type": "PixelArtDetectorSave",
+      "pos": [
+        1343,
+        -1099
+      ],
+      "size": [
+        450.10400390625,
+        604.7489624023438
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 212
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfyui-pixelart-detector",
+        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
+        "Node name for S&R": "PixelArtDetectorSave"
+      },
+      "widgets_values": [
+        "%date%/PixelArt",
+        false,
+        128,
+        "lossy",
+        80,
+        false,
+        true,
+        512,
+        512
+      ]
+    },
+    {
+      "id": 111,
+      "type": "ImageScale",
+      "pos": [
+        1794,
+        -377
+      ],
+      "size": [
+        315,
+        130
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 211
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            203
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
+        "Node name for S&R": "ImageScale"
+      },
+      "widgets_values": [
+        "nearest-exact",
+        512,
+        512,
+        "disabled"
+      ]
+    },
+    {
+      "id": 116,
+      "type": "SaveImage",
+      "pos": [
+        2236,
+        -814
+      ],
+      "size": [
+        484.3656005859375,
+        556.1629028320312
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 203
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 118,
+      "type": "SaveImage",
+      "pos": [
+        2238,
+        -75
+      ],
+      "size": [
+        484.3656005859375,
+        556.1629028320312
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 220
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 125,
+      "type": "PixelArtLoadPalettes",
+      "pos": [
+        1082.7513427734375,
+        211.56544494628906
+      ],
+      "size": [
+        400,
+        280
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "links": [
+            219
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-pixelart-detector",
+        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
+        "Node name for S&R": "PixelArtLoadPalettes"
+      },
+      "widgets_values": [
+        "31-1x.png",
+        false,
+        "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'",
+        40,
+        "#f40e12",
+        "#fff",
+        6,
+        true,
+        3
+      ]
+    },
+    {
+      "id": 124,
+      "type": "PixelArtDetectorConverter",
+      "pos": [
+        1667.0712890625,
+        94.52552032470703
+      ],
+      "size": [
+        400,
+        396
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 218
+        },
+        {
+          "name": "paletteList",
+          "shape": 7,
+          "type": "LIST",
+          "link": 219
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "shape": 6,
+          "type": "IMAGE",
+          "links": [
+            220
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-pixelart-detector",
+        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
+        "Node name for S&R": "PixelArtDetectorConverter"
+      },
+      "widgets_values": [
+        "GAMEBOY",
+        512,
+        512,
+        "Image.quantize",
+        2,
+        true,
+        "Image.quantize",
+        128,
+        true,
+        "MAXCOVERAGE",
+        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n",
+        "RANDOM_CENTERS",
+        10,
+        10,
+        "EUCLIDEAN_SQUARE",
+        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
+        false,
+        0.02,
+        "none"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        -90,
+        -620
+      ],
+      "size": [
+        350,
+        100
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            46
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 1,
+          "links": [
+            47
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 2,
+          "links": []
+        }
+      ],
+      "title": "Load Checkpoint - BASE",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "SDXL\\halcyonSDXL_v14.safetensors"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
       "id": 49,
       "type": "LoraLoader",
       "pos": [
         380,
         -621
       ],
-      "size": {
-        "0": 315,
-        "1": 126
-      },
+      "size": [
+        315,
+        126
+      ],
       "flags": {},
       "order": 14,
       "mode": 0,
@@ -431,28 +701,28 @@
         {
           "name": "MODEL",
           "type": "MODEL",
+          "slot_index": 0,
           "links": [
             52
-          ],
-          "shape": 3,
-          "slot_index": 0
+          ]
         },
         {
           "name": "CLIP",
           "type": "CLIP",
+          "slot_index": 1,
           "links": [
             50,
             51
-          ],
-          "shape": 3,
-          "slot_index": 1
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
         "Node name for S&R": "LoraLoader"
       },
       "widgets_values": [
-        "pixel-art-xl-v1.1.safetensors",
+        "SDXL\\pixel-art-xl-v1.1.safetensors",
         1,
         1
       ]
@@ -461,13 +731,13 @@
       "id": 6,
       "type": "CLIPTextEncode",
       "pos": [
-        401.55279136151427,
-        -134.7701332246045
+        413.5528564453125,
+        -237.9700927734375
       ],
-      "size": {
-        "0": 210,
-        "1": 54
-      },
+      "size": [
+        210.29940795898438,
+        88
+      ],
       "flags": {},
       "order": 15,
       "mode": 0,
@@ -480,24 +750,25 @@
         {
           "name": "text",
           "type": "STRING",
-          "link": 16,
           "widget": {
             "name": "text"
           },
-          "slot_index": 1
+          "link": 16
         }
       ],
       "outputs": [
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
+          "slot_index": 0,
           "links": [
             11
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
@@ -507,16 +778,42 @@
       "bgcolor": "#353"
     },
     {
+      "id": 39,
+      "type": "Note",
+      "pos": [
+        411.15283203125,
+        38.82978057861328
+      ],
+      "size": [
+        214.97518920898438,
+        88
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Note - CLIP Encode (BASE)",
+      "properties": {
+        "text": ""
+      },
+      "widgets_values": [
+        "These nodes receive the text from the prompt and use the optimal CLIP settings for the specified checkpoint model"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
       "id": 7,
       "type": "CLIPTextEncode",
       "pos": [
-        401.55279136151427,
-        -44.77013322460424
+        411.952880859375,
+        -100.77001953125
       ],
-      "size": {
-        "0": 210,
-        "1": 54
-      },
+      "size": [
+        210.29940795898438,
+        88
+      ],
       "flags": {},
       "order": 16,
       "mode": 0,
@@ -529,31 +826,108 @@
         {
           "name": "text",
           "type": "STRING",
-          "link": 18,
           "widget": {
             "name": "text"
           },
-          "slot_index": 1
+          "link": 18
         }
       ],
       "outputs": [
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
+          "slot_index": 0,
           "links": [
             12
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        ""
+        "realistic, photorealistic, 3d"
       ],
       "color": "#322",
       "bgcolor": "#533"
+    },
+    {
+      "id": 14,
+      "type": "PrimitiveNode",
+      "pos": [
+        -60.48336410522461,
+        19.285940170288086
+      ],
+      "size": [
+        300,
+        160
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "slot_index": 0,
+          "links": [
+            18
+          ]
+        }
+      ],
+      "title": "Negative Prompt (Text)",
+      "properties": {
+        "Run widget replace on values": false
+      },
+      "widgets_values": [
+        "realistic, photorealistic, 3d"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 5,
+      "type": "EmptyLatentImage",
+      "pos": [
+        364.9040832519531,
+        233.58416748046875
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
     },
     {
       "id": 10,
@@ -562,10 +936,10 @@
         731,
         -299
       ],
-      "size": {
-        "0": 300,
-        "1": 538
-      },
+      "size": [
+        300,
+        546
+      ],
       "flags": {},
       "order": 17,
       "mode": 0,
@@ -593,35 +967,34 @@
         {
           "name": "steps",
           "type": "INT",
-          "link": 41,
           "widget": {
             "name": "steps"
           },
-          "slot_index": 4
+          "link": 41
         },
         {
           "name": "end_at_step",
           "type": "INT",
-          "link": 43,
           "widget": {
             "name": "end_at_step"
           },
-          "slot_index": 5
+          "link": 43
         }
       ],
       "outputs": [
         {
           "name": "LATENT",
           "type": "LATENT",
+          "slot_index": 0,
           "links": [
             70
-          ],
-          "shape": 3,
-          "slot_index": 0
+          ]
         }
       ],
       "title": "KSampler (Advanced) - BASE",
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
         "Node name for S&R": "KSamplerAdvanced"
       },
       "widgets_values": [
@@ -634,326 +1007,10 @@
         "normal",
         0,
         20,
-        "enable"
+        "disable"
       ],
       "color": "#223",
       "bgcolor": "#335"
-    },
-    {
-      "id": 17,
-      "type": "VAEDecode",
-      "pos": [
-        1071,
-        -258
-      ],
-      "size": {
-        "0": 200,
-        "1": 50
-      },
-      "flags": {},
-      "order": 18,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "samples",
-          "type": "LATENT",
-          "link": 70,
-          "slot_index": 0
-        },
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 57
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            210,
-            212,
-            214
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VAEDecode"
-      },
-      "color": "#332922",
-      "bgcolor": "#593930"
-    },
-    {
-      "id": 121,
-      "type": "PixelArtDetectorToImage",
-      "pos": [
-        1426,
-        -350
-      ],
-      "size": {
-        "0": 315,
-        "1": 82
-      },
-      "flags": {},
-      "order": 19,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 210
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            211
-          ],
-          "shape": 6,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PixelArtDetectorToImage"
-      },
-      "widgets_values": [
-        false,
-        128
-      ]
-    },
-    {
-      "id": 122,
-      "type": "PixelArtDetectorSave",
-      "pos": [
-        1343,
-        -1099
-      ],
-      "size": {
-        "0": 450.10400390625,
-        "1": 604.7489624023438
-      },
-      "flags": {},
-      "order": 20,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 212
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PixelArtDetectorSave"
-      },
-      "widgets_values": [
-        "%date%/PixelArt",
-        false,
-        128,
-        "lossy",
-        80,
-        false,
-        true,
-        512,
-        512
-      ]
-    },
-    {
-      "id": 111,
-      "type": "ImageScale",
-      "pos": [
-        1794,
-        -377
-      ],
-      "size": {
-        "0": 315,
-        "1": 130
-      },
-      "flags": {},
-      "order": 22,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 211
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            203
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageScale"
-      },
-      "widgets_values": [
-        "nearest-exact",
-        512,
-        512,
-        "disabled"
-      ]
-    },
-    {
-      "id": 116,
-      "type": "SaveImage",
-      "pos": [
-        2236,
-        -814
-      ],
-      "size": {
-        "0": 484.3656005859375,
-        "1": 556.1629028320312
-      },
-      "flags": {},
-      "order": 24,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 203
-        }
-      ],
-      "properties": {},
-      "widgets_values": [
-        "ComfyUI"
-      ]
-    },
-    {
-      "id": 118,
-      "type": "SaveImage",
-      "pos": [
-        2238,
-        -75
-      ],
-      "size": {
-        "0": 484.3656005859375,
-        "1": 556.1629028320312
-      },
-      "flags": {},
-      "order": 23,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 216
-        }
-      ],
-      "properties": {},
-      "widgets_values": [
-        "ComfyUI"
-      ]
-    },
-    {
-      "id": 119,
-      "type": "PixelArtLoadPalettes",
-      "pos": [
-        1099,
-        225
-      ],
-      "size": {
-        "0": 315.8960876464844,
-        "1": 303.4615478515625
-      },
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "outputs": [
-        {
-          "name": "paletteList",
-          "type": "LIST",
-          "links": [
-            215
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PixelArtLoadPalettes"
-      },
-      "widgets_values": [
-        "pastel-qt-1x.png",
-        false,
-        "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'",
-        40,
-        "#f40e12",
-        "#fff",
-        6,
-        true,
-        3
-      ]
-    },
-    {
-      "id": 123,
-      "type": "PixelArtDetectorConverter",
-      "pos": [
-        1578,
-        106
-      ],
-      "size": {
-        "0": 400,
-        "1": 506
-      },
-      "flags": {},
-      "order": 21,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 214
-        },
-        {
-          "name": "paletteList",
-          "type": "LIST",
-          "link": 215
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            216
-          ],
-          "shape": 6,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PixelArtDetectorConverter"
-      },
-      "widgets_values": [
-        "GAMEBOY",
-        "Image.quantize",
-        2,
-        512,
-        512,
-        false,
-        128,
-        true,
-        "MAXCOVERAGE",
-        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n",
-        "RANDOM_CENTERS",
-        10,
-        10,
-        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
-        false,
-        0.02,
-        "none"
-      ]
     }
   ],
   "links": [
@@ -1102,24 +1159,24 @@
       "IMAGE"
     ],
     [
-      214,
+      218,
       17,
       0,
-      123,
+      124,
       0,
       "IMAGE"
     ],
     [
-      215,
-      119,
+      219,
+      125,
       0,
-      123,
+      124,
       1,
       "LIST"
     ],
     [
-      216,
-      123,
+      220,
+      124,
       0,
       118,
       0,
@@ -1128,18 +1185,20 @@
   ],
   "groups": [
     {
+      "id": 1,
       "title": "Base Prompt",
       "bounding": [
-        381,
-        -215,
-        252,
-        361
+        385.800048828125,
+        -333.39996337890625,
+        258.39996337890625,
+        480.99981689453125
       ],
       "color": "#3f789e",
       "font_size": 24,
-      "locked": false
+      "flags": {}
     },
     {
+      "id": 2,
       "title": "Text Prompts",
       "bounding": [
         -81,
@@ -1149,9 +1208,10 @@
       ],
       "color": "#3f789e",
       "font_size": 24,
-      "locked": false
+      "flags": {}
     },
     {
+      "id": 3,
       "title": "Load in BASE SDXL Model",
       "bounding": [
         -100,
@@ -1161,9 +1221,10 @@
       ],
       "color": "#a1309b",
       "font_size": 24,
-      "locked": false
+      "flags": {}
     },
     {
+      "id": 4,
       "title": "Empty Latent Image",
       "bounding": [
         344,
@@ -1173,9 +1234,10 @@
       ],
       "color": "#a1309b",
       "font_size": 24,
-      "locked": false
+      "flags": {}
     },
     {
+      "id": 5,
       "title": "VAE Decoder",
       "bounding": [
         730,
@@ -1185,9 +1247,10 @@
       ],
       "color": "#b06634",
       "font_size": 24,
-      "locked": false
+      "flags": {}
     },
     {
+      "id": 6,
       "title": "Step Control",
       "bounding": [
         738,
@@ -1197,10 +1260,23 @@
       ],
       "color": "#3f789e",
       "font_size": 24,
-      "locked": false
+      "flags": {}
     }
   ],
   "config": {},
-  "extra": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8264462809917356,
+      "offset": [
+        -27.97645751995628,
+        921.3923362191365
+      ]
+    },
+    "frontendVersion": "1.24.4",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
   "version": 0.4
 }
