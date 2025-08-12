@@ -29,7 +29,8 @@ SOFTWARE.
 # implementation of https://github.com/Astropulse/pixeldetector to a ComfyUI extension node + other goodies
 # by dimtoneff
 import hashlib
-import json, time
+import json
+import time
 from datetime import datetime
 import nodes
 import numpy as np
@@ -44,7 +45,6 @@ if not hasattr(np, "warnings"):
     np.warnings = warnings
 
 
-
 class GRID_SETTING(Enum):
     FONT_SIZE = "font_size"
     FONT_COLOR = "font_color"
@@ -56,7 +56,8 @@ class GRID_SETTING(Enum):
 
 class SETTINGS(Enum):
     # it will resize the image if user settings are above this treshold
-    MIN_RESIZE_TRESHOLD: int = 64
+    MIN_RESIZE_TRESHOLD = 64
+
 
 class PixelArtPaletteGenerator:
     def __init__(self):
@@ -72,8 +73,8 @@ class PixelArtPaletteGenerator:
             },
         }
 
-    RETURN_TYPES = ("IMAGE","LIST")
-    RETURN_NAMES = ("image","color_palettes")
+    RETURN_TYPES = ("IMAGE", "LIST")
+    RETURN_NAMES = ("image", "color_palettes")
     FUNCTION = "image_generate_palette"
 
     CATEGORY = "image/PixelArt🕹️"
@@ -133,7 +134,7 @@ class PixelArtPaletteGenerator:
         palette_size = (palette_width, palette_height)
 
         palette = Image.new('RGB', palette_size, color='white')
-        
+
         hex_palette = []
         for i, (color, _) in enumerate(sorted_colors):
             if mode == 'back_to_back':
@@ -163,16 +164,20 @@ class PixelArtPaletteGenerator:
             palette_list = []
             for img in image:
                 img = tensor2pil(img)
-                palette_image, hex_palette = self.generate_palette(img, colors, 128, 10, mode.lower())
+                palette_image, hex_palette = self.generate_palette(
+                    img, colors, 128, 10, mode.lower())
                 palette_bytes = self.hex_palette_to_bytes(hex_palette)
-                palette_dict = {"p": palette_bytes, "a": "Arbitrary identifier or annotation."}
+                palette_dict = {"p": palette_bytes,
+                                "a": "Arbitrary identifier or annotation."}
                 palette_list.append(palette_dict)
             return (torch.cat([pil2tensor(palette_image) for palette_image, _ in palette_list], dim=0), palette_list)
         else:
             image = tensor2pil(image[0])
-            palette_image, hex_palette = self.generate_palette(image, colors, 128, 10, mode.lower())
+            palette_image, hex_palette = self.generate_palette(
+                image, colors, 128, 10, mode.lower())
             palette_bytes = self.hex_palette_to_bytes(hex_palette)
-            palette_dict = {"p": palette_bytes, "a": "Arbitrary identifier or annotation."}
+            palette_dict = {"p": palette_bytes,
+                            "a": "Arbitrary identifier or annotation."}
             return (pil2tensor(palette_image), [palette_dict,])
 
     def hex_palette_to_bytes(self, hex_palette):
@@ -184,7 +189,8 @@ class PixelArtPaletteGenerator:
             rgb = tuple(int(hex_color[i:i+2], 16) for i in (1, 3, 5))
             palette_bytes.extend(rgb)
         return bytes(palette_bytes)
-    
+
+
 class PixelArtLoadPalettes(nodes.LoadImage):
     """
     A node that scans images in a directory and returns the palette for the seleced image or for all images to display in a Grid
@@ -198,7 +204,8 @@ class PixelArtLoadPalettes(nodes.LoadImage):
 
     @classmethod
     def INPUT_TYPES(cls):
-        files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR)))
+        files = scanFilesInDir(os.path.normpath(
+            os.path.join(getPalettesPath(), cls.INPUT_DIR)))
         return {"required": {
             "image": (files, {"image_upload": False}),
             "render_all_palettes_in_grid": (
@@ -220,7 +227,8 @@ class PixelArtLoadPalettes(nodes.LoadImage):
                    paletteList_grid_cols, paletteList_grid_add_border, paletteList_grid_border_width
                    ):
         def _getImagePalette(imgName):
-            image_path = os.path.normpath(os.path.join(getPalettesPath(), self.INPUT_DIR, imgName))
+            image_path = os.path.normpath(os.path.join(
+                getPalettesPath(), self.INPUT_DIR, imgName))
             i = Image.open(image_path)
             i = ImageOps.exif_transpose(i)
             return i.convert("P").getpalette()
@@ -237,12 +245,14 @@ class PixelArtLoadPalettes(nodes.LoadImage):
 
         palettes = list()
         if render_all_palettes_in_grid:
-            files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), self.INPUT_DIR)))
+            files = scanFilesInDir(os.path.normpath(
+                os.path.join(getPalettesPath(), self.INPUT_DIR)))
             palettes = [
                 {"p": _getImagePalette(file), "a": Path(file).stem, "grid_settings": _generateGridUserSettings()} for
                 file in files]
         else:
-            palettes.append({"p": _getImagePalette(image), "a": Path(image).stem})
+            palettes.append(
+                {"p": _getImagePalette(image), "a": Path(image).stem})
 
         return (palettes,)
 
@@ -250,17 +260,19 @@ class PixelArtLoadPalettes(nodes.LoadImage):
     def IS_CHANGED(cls, image, render_all_palettes_in_grid, grid_settings, paletteList_grid_font_size,
                    paletteList_grid_font_color, paletteList_grid_background,
                    paletteList_grid_cols, paletteList_grid_add_border, paletteList_grid_border_width):
-        
+
         m = hashlib.sha256()
 
         if render_all_palettes_in_grid:
             # Hash all images in the directory
-            files = scanFilesInDir(os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR)))
+            files = scanFilesInDir(os.path.normpath(
+                os.path.join(getPalettesPath(), cls.INPUT_DIR)))
             for file in files:
-                image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, file))
+                image_path = os.path.normpath(os.path.join(
+                    getPalettesPath(), cls.INPUT_DIR, file))
                 with open(image_path, 'rb') as f:
                     m.update(f.read())
-            
+
             # Hash all grid settings
             m.update(str(paletteList_grid_font_size).encode())
             m.update(paletteList_grid_font_color.encode())
@@ -271,7 +283,8 @@ class PixelArtLoadPalettes(nodes.LoadImage):
 
         else:
             # Hash only the selected image
-            image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, image))
+            image_path = os.path.normpath(os.path.join(
+                getPalettesPath(), cls.INPUT_DIR, image))
             with open(image_path, 'rb') as f:
                 m.update(f.read())
 
@@ -280,7 +293,8 @@ class PixelArtLoadPalettes(nodes.LoadImage):
     @classmethod
     def VALIDATE_INPUTS(cls, image, render_all_palettes_in_grid, **kwargs):
         if not render_all_palettes_in_grid:
-            image_path = os.path.normpath(os.path.join(getPalettesPath(), cls.INPUT_DIR, image))
+            image_path = os.path.normpath(os.path.join(
+                getPalettesPath(), cls.INPUT_DIR, image))
             if not Path(image_path).is_file():
                 return f"Invalid image file: {image}"
         return True
@@ -304,7 +318,7 @@ class PixelArtAddDitherPattern:
         },
             "optional": {
                 "custom_pattern": ("MASK",),
-            },
+        },
         }
 
     RETURN_TYPES = ("IMAGE",)
@@ -323,7 +337,8 @@ class PixelArtAddDitherPattern:
                 pattern = halftone_45_degrees_pattern(pattern_order)
                 pattern = normalize_pattern(pattern)
             else:
-                pattern = torch.zeros((4, 4), dtype=torch.float32)  # Zero pattern.
+                # Zero pattern.
+                pattern = torch.zeros((4, 4), dtype=torch.float32)
 
         pattern = pattern * amount
 
@@ -331,7 +346,8 @@ class PixelArtAddDitherPattern:
         th = math.ceil(image.shape[2] / pattern.shape[1])
         tiled_pattern = pattern.tile(tw, th).unsqueeze(-1).unsqueeze(0)
 
-        result = (image + tiled_pattern[:, :image.shape[1], :image.shape[2]]).clamp_(0, 1)
+        result = (
+            image + tiled_pattern[:, :image.shape[1], :image.shape[2]]).clamp_(0, 1)
         return (result,)
 
 
@@ -344,20 +360,32 @@ class PixelArtDetectorConverter:
         self.CGREEN = '\033[92m'
         self.CYELLOW = '\033[93m'
         self.CEND = '\033[0m'
-        self.GAME_BOY_PALETTE_TUPLES = [(15, 56, 15), (48, 98, 48), (139, 172, 15), (155, 188, 15)]  # ,(202,220,159)
+        self.GAME_BOY_PALETTE_TUPLES = [
+            # ,(202,220,159)
+            (15, 56, 15), (48, 98, 48), (139, 172, 15), (155, 188, 15)]
         self.NES_PALETTE_TUPLES = [(124, 124, 124), (0, 0, 252), (0, 0, 188), (68, 40, 188), (148, 0, 132),
-                                   (168, 0, 32), (168, 16, 0), (136, 20, 0), (80, 48, 0), (0, 120, 0), (0, 104, 0),
-                                   (0, 88, 0), (0, 64, 88), (0, 0, 0), (0, 0, 0), (0, 0, 0), (188, 188, 188),
-                                   (0, 120, 248), (0, 88, 248), (104, 68, 252), (216, 0, 204), (228, 0, 88),
+                                   (168, 0, 32), (168, 16, 0), (136, 20,
+                                                                0), (80, 48, 0), (0, 120, 0), (0, 104, 0),
+                                   (0, 88, 0), (0, 64, 88), (0, 0, 0), (0,
+                                                                        0, 0), (0, 0, 0), (188, 188, 188),
+                                   (0, 120, 248), (0, 88, 248), (104, 68,
+                                                                 252), (216, 0, 204), (228, 0, 88),
                                    (248, 56, 0),
-                                   (228, 92, 16), (172, 124, 0), (0, 184, 0), (0, 168, 0), (0, 168, 68), (0, 136, 136),
-                                   (0, 0, 0), (0, 0, 0), (0, 0, 0), (248, 248, 248), (60, 188, 252), (104, 136, 252),
-                                   (152, 120, 248), (248, 120, 248), (248, 88, 152), (248, 120, 88), (252, 160, 68),
-                                   (248, 184, 0), (184, 248, 24), (88, 216, 84), (88, 248, 152), (0, 232, 216),
-                                   (120, 120, 120), (0, 0, 0), (0, 0, 0), (252, 252, 252), (164, 228, 252),
+                                   (228, 92, 16), (172, 124, 0), (0, 184,
+                                                                  0), (0, 168, 0), (0, 168, 68), (0, 136, 136),
+                                   (0, 0, 0), (0, 0, 0), (0, 0, 0), (248, 248,
+                                                                     248), (60, 188, 252), (104, 136, 252),
+                                   (152, 120, 248), (248, 120, 248), (248,
+                                                                      88, 152), (248, 120, 88), (252, 160, 68),
+                                   (248, 184, 0), (184, 248, 24), (88, 216,
+                                                                   84), (88, 248, 152), (0, 232, 216),
+                                   (120, 120, 120), (0, 0, 0), (0, 0,
+                                                                0), (252, 252, 252), (164, 228, 252),
                                    (184, 184, 248),
-                                   (216, 184, 248), (248, 184, 248), (248, 164, 192), (240, 208, 176), (252, 224, 168),
-                                   (248, 216, 120), (216, 248, 120), (184, 248, 184), (184, 248, 216), (0, 252, 252),
+                                   (216, 184, 248), (248, 184, 248), (248, 164,
+                                                                      192), (240, 208, 176), (252, 224, 168),
+                                   (248, 216, 120), (216, 248, 120), (184,
+                                                                      248, 184), (184, 248, 216), (0, 252, 252),
                                    (248, 216, 248), (0, 0, 0), (0, 0, 0)
                                    ]
         self.GAME_BOY = [15, 56, 15, 48, 98, 48, 139, 172, 15, 155, 188, 15]
@@ -386,7 +414,8 @@ class PixelArtDetectorConverter:
             "reduce_colors_before_palette_swap": (
                 "BOOLEAN", {"default": False, "label_on": "enabled", "label_off": "disabled"}),
             "reduce_colors_method": (
-                ["Image.quantize", "OpenCV.kmeans.reduce", "Pycluster.kmeans.reduce", "Pycluster.kmedians.reduce"],
+                ["Image.quantize", "OpenCV.kmeans.reduce",
+                    "Pycluster.kmeans.reduce", "Pycluster.kmedians.reduce"],
                 {"default": "Image.quantize"}),
             "reduce_colors_max_colors": ("INT", {"default": 128, "min": 1, "max": 256, "step": 1},),
             "apply_pixeldetector_max_colors": (
@@ -412,7 +441,7 @@ class PixelArtDetectorConverter:
         },
             "optional": {
                 "paletteList": ("LIST", {"forceInput": True}),
-            },
+        },
         }
 
     RETURN_TYPES = ("IMAGE",)
@@ -440,14 +469,18 @@ class PixelArtDetectorConverter:
 
         results = list()
         for image in images:
-            pilImage = Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)).convert("RGB")
+            pilImage = Image.fromarray(
+                np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)).convert("RGB")
             # resize(Upscale) if image size is less than the user given size
-            resizeBefore = (pilImage.width < resize_w and pilImage.height < resize_h)
+            resizeBefore = (pilImage.width <
+                            resize_w and pilImage.height < resize_h)
 
             # resize if image needs upscale
             if resizeBefore and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
-                pilImage = pilImage.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
-                print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image resized before reducing and quantizing!")
+                pilImage = pilImage.resize(
+                    (resize_w, resize_h), resample=Image.Resampling.NEAREST)
+                print(
+                    f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image resized before reducing and quantizing!")
 
             if reduce_colors_before_palette_swap and not isGrid:
                 # Start timer
@@ -456,12 +489,14 @@ class PixelArtDetectorConverter:
                                           reduce_colors_max_colors) if apply_pixeldetector_max_colors else reduce_colors_max_colors
                 if reduce_colors_method == "Pycluster.kmeans.reduce":
                     # Use pyclustering.kmeans to reduce the colors of the image
-                    pilImage, _ = pycluster_kmeans(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
+                    pilImage, _ = pycluster_kmeans(
+                        pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
                     print(
                         f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmeans{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
                 elif reduce_colors_method == "Pycluster.kmedians.reduce":
                     # Use pyclustering.kmedians to reduce the colors of the image
-                    pilImage, _ = pycluster_kmedians(pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
+                    pilImage, _ = pycluster_kmedians(
+                        pilImage, kmin=best_k // 2, kmax=best_k, metric=pycluster_kmeans_metrics)
                     print(
                         f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Pycluster.kmedians{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
                 elif reduce_colors_method == "OpenCV.kmeans.reduce":
@@ -474,15 +509,18 @@ class PixelArtDetectorConverter:
                         f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}OpenCV.kmeans{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Best_K: {self.CYELLOW}{best_k}{self.CEND}")
                 else:
                     # "Image.quantize"
-                    pilImage = pilImage.quantize(colors=best_k, dither=Image.Dither.NONE, kmeans=best_k, method=getQuantizeMethod(image_quantize_reduce_method)).convert('RGB')
+                    pilImage = pilImage.quantize(colors=best_k, dither=Image.Dither.NONE, kmeans=best_k, method=getQuantizeMethod(
+                        image_quantize_reduce_method)).convert('RGB')
                     print(
                         f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image colors reduced with {self.CYELLOW}Image.quantize{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds. Quantize method: {self.CYELLOW}{image_quantize_reduce_method}{self.CEND}. KMeans/Best_K: {self.CYELLOW}{best_k}{self.CEND}")
 
             if cleanup_colors and not isGrid:
                 # Start timer
                 start = round(time.time() * 1000)
-                pilImage = cleanupColors(pilImage, cleanup_pixels_threshold, reduce_colors_max_colors, getQuantizeMethod(image_quantize_reduce_method))
-                print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Pixels clean up finished in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds.")
+                pilImage = cleanupColors(pilImage, cleanup_pixels_threshold, reduce_colors_max_colors, getQuantizeMethod(
+                    image_quantize_reduce_method))
+                print(
+                    f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Pixels clean up finished in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds.")
 
             # Start timer
             start = round(time.time() * 1000)
@@ -495,30 +533,36 @@ class PixelArtDetectorConverter:
                     PILOutput = pilImage.quantize(palette=transformPalette(palette, "image"),
                                                   dither=(Image.Dither.FLOYDSTEINBERG if dither == "floyd-steinberg" else Image.Dither.NONE)).convert('RGB')
                     if dither == "floyd-steinberg":
-                        print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Dither {dither} applied to the image before quantization!")
+                        print(
+                            f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Dither {dither} applied to the image before quantization!")
                 elif pixelize == "NP.quantize":
                     PILOutput = npQuantize(
                         pilImage,
                         transformPalette(palette, "tuple"))
                 else:
-                    PILOutput = pixelate(pilImage, grid_pixelate_grid_scan_size, transformPalette(palette, "tuple"))
+                    PILOutput = pixelate(
+                        pilImage, grid_pixelate_grid_scan_size, transformPalette(palette, "tuple"))
 
             # Dithering
             if not isGrid and dither.startswith("bayer"):
                 order = int(dither.split('-')[-1])
-                PILOutput = ditherBayer(pilImage, transformPalette(palette, "image"), order)
-                print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Dither {dither} applied to the image!")
+                PILOutput = ditherBayer(
+                    pilImage, transformPalette(palette, "image"), order)
+                print(
+                    f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Dither {dither} applied to the image!")
             elif not isGrid and dither == "floyd-steinberg" and pixelize is not "Image.quantize":
                 PILOutput = pilImage.quantize(palette=transformPalette(palette, "image"),
-                                                  dither=Image.Dither.FLOYDSTEINBERG).convert('RGB')
-                print(f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Dither {dither} applied to the image!")
+                                              dither=Image.Dither.FLOYDSTEINBERG).convert('RGB')
+                print(
+                    f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Dither {dither} applied to the image!")
 
             print(
                 f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image converted in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds.")
 
             # resize if image needs downscale
             if not resizeBefore and not isGrid and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
-                PILOutput = PILOutput.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
+                PILOutput = PILOutput.resize(
+                    (resize_w, resize_h), resample=Image.Resampling.NEAREST)
 
             # Convert to torch.Tensor
             PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
@@ -527,9 +571,9 @@ class PixelArtDetectorConverter:
 
         return (results,)
 
-    def genImagesForGrid(self, image: Image, paletteList: list[dict], fontSize: int = 40, fontColor: str = "#f40e12",
+    def genImagesForGrid(self, image: Image.Image, paletteList: list[dict], fontSize: int = 40, fontColor: str = "#f40e12",
                          gridBackground: str = "#fff", gridCols: int = 6, addBorder: bool = True,
-                         borderWidth: int = 3) -> Image:
+                         borderWidth: int = 3) -> Image.Image:
         def _parseGridUserSettings(g: dict):
             return g.get(GRID_SETTING.FONT_SIZE, fontSize), g.get(GRID_SETTING.FONT_COLOR, fontColor), g.get(
                 GRID_SETTING.BACKGROUND_COLOR, gridBackground), g.get(GRID_SETTING.COLS_NUM, gridCols), g.get(
@@ -545,8 +589,10 @@ class PixelArtDetectorConverter:
         for d in paletteList:
             palette = d.get("p")
             annotation = d.get("a")
-            img = image.quantize(palette=transformPalette(palette, "image"), dither=Image.Dither.NONE).convert('RGB')
-            drawTextInImage(img, annotation, fontSize, fontColor, strokeColor=gridBackground)
+            img = image.quantize(palette=transformPalette(
+                palette, "image"), dither=Image.Dither.NONE).convert('RGB')
+            drawTextInImage(img, annotation, fontSize,
+                            fontColor, strokeColor=gridBackground)
             images.append(img)
 
         return smart_grid_image(images=images, cols=gridCols, add_border=addBorder, border_color=gridBackground,
@@ -581,7 +627,8 @@ class PixelArtDetectorToImage:
     def process(self, images, reduce_palette, reduce_palette_max_colors):
         results = list()
         for image in images:
-            pilImage = Image.fromarray(np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)).convert("RGB")
+            pilImage = Image.fromarray(
+                np.clip(255. * image.cpu().numpy(), 0, 255).astype(np.uint8)).convert("RGB")
 
             # Start timer
             start = round(time.time() * 1000)
@@ -600,7 +647,8 @@ class PixelArtDetectorToImage:
                 # Start timer
                 start = round(time.time() * 1000)
                 # Reduce color palette using elbow method
-                PILOutput, best_k = reducePalette(downscale, reduce_palette_max_colors)
+                PILOutput, best_k = reducePalette(
+                    downscale, reduce_palette_max_colors)
                 print(
                     f"### {self.CGREEN}[PixelArtDetectorToImage]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds")
 
@@ -671,13 +719,15 @@ class PixelArtDetectorSave:
                     f"### {self.CGREEN}[PixelArtDetectorSave]{self.CEND} Reduce pallete max_colors: {self.CYELLOW}{reduce_palette_max_colors}{self.CEND}")
                 # Start timer
                 start = round(time.time() * 1000)
-                PILOutput, best_k = reducePalette(downscale, reduce_palette_max_colors)
+                PILOutput, best_k = reducePalette(
+                    downscale, reduce_palette_max_colors)
                 print(
                     f"### {self.CGREEN}[PixelArtDetectorSave]{self.CEND} Palette reduced to {self.CYELLOW}{best_k}{self.CEND} colors in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds")
 
             # resize
             if resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
-                PILOutput = PILOutput.resize((resize_w, resize_h), resample=Image.Resampling.NEAREST)
+                PILOutput = PILOutput.resize(
+                    (resize_w, resize_h), resample=Image.Resampling.NEAREST)
 
             results.append(self.saveImage(
                 PILOutput,
@@ -703,7 +753,8 @@ class PixelArtDetectorSave:
             return (digits, prefix)
 
         def compute_vars(input):
-            input = input.replace("%date%", datetime.now().strftime("%Y-%m-%d"))
+            input = input.replace(
+                "%date%", datetime.now().strftime("%Y-%m-%d"))
             return input
 
         output_dir = folder_paths.get_output_directory()
@@ -727,13 +778,16 @@ class PixelArtDetectorSave:
 
         if not args.disable_metadata and save_exif:
             if prompt is not None:
-                promptstr = "".join(json.dumps(prompt))  # prepare prompt String
-                imgexif[0x010f] = "Prompt:" + promptstr  # Add PromptString to EXIF position 0x010f (Exif.Image.Make)
+                # prepare prompt String
+                promptstr = "".join(json.dumps(prompt))
+                # Add PromptString to EXIF position 0x010f (Exif.Image.Make)
+                imgexif[0x010f] = "Prompt:" + promptstr
             if extra_pnginfo is not None:
                 for x in extra_pnginfo:
                     workflowmetadata += "".join(json.dumps(extra_pnginfo[x]))
             imgexif[
-                0x010e] = "Workflow:" + workflowmetadata  # Add Workflowstring to EXIF position 0x010e (Exif.Image.ImageDescription)
+                # Add Workflowstring to EXIF position 0x010e (Exif.Image.ImageDescription)
+                0x010e] = "Workflow:" + workflowmetadata
 
         file = f"{filename}_{counter:05}_"
 

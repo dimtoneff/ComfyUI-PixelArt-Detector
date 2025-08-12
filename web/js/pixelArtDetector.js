@@ -71,6 +71,104 @@ function updatePixelArtDetectorConverterWidgets(node) {
     updateNodeHeight(node);
 }
 
+function updatePixelArtLoadPalettesWidgets(node) {
+    const renderAllWidget = findWidgetByName(node, "render_all_palettes_in_grid");
+    if (!renderAllWidget) {
+        return;
+    }
+
+    const gridSettingsWidgets = [
+        "grid_settings",
+        "paletteList_grid_font_size",
+        "paletteList_grid_font_color",
+        "paletteList_grid_background",
+        "paletteList_grid_cols",
+        "paletteList_grid_add_border",
+        "paletteList_grid_border_width",
+    ];
+
+    const show = renderAllWidget.value;
+
+    gridSettingsWidgets.forEach(widgetName => {
+        const widget = findWidgetByName(node, widgetName);
+        if (widget) {
+            toggleWidget(node, widget, show);
+        }
+    });
+
+    updateNodeHeight(node);
+}
+
+async function updatePalettePreview(node, imageName) {
+    const widget = findWidgetByName(node, "palette_preview");
+    if (!widget) {
+        return;
+    }
+
+    const canvas = widget.canvas;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!imageName || findWidgetByName(node, "render_all_palettes_in_grid").value) {
+        canvas.height = 0;
+        updateNodeHeight(node);
+        return;
+    }
+
+    const imageUrl = `/extensions/ComfyUI-PixelArt-Detector/palettes/1x/${encodeURIComponent(imageName)}`;
+
+    try {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = imageUrl;
+
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+        });
+
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = img.width;
+        tempCanvas.height = img.height;
+        tempCtx.drawImage(img, 0, 0);
+
+        const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imageData.data;
+        const colors = new Set();
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            colors.add(`rgb(${r},${g},${b})`);
+        }
+
+        const uniqueColors = Array.from(colors);
+
+        canvas.width = node.size[0] - 40;
+        const cellSize = 16;
+        const padding = 1;
+        const numColors = uniqueColors.length;
+        const cellsPerRow = Math.floor(canvas.width / (cellSize + padding));
+        const numRows = Math.ceil(numColors / cellsPerRow);
+        canvas.height = numRows * (cellSize + padding);
+
+        uniqueColors.forEach((color, index) => {
+            const col = index % cellsPerRow;
+            const row = Math.floor(index / cellsPerRow);
+            ctx.fillStyle = color;
+            ctx.fillRect(col * (cellSize + padding), row * (cellSize + padding), cellSize, cellSize);
+        });
+
+    } catch (error) {
+        console.error("Error loading or processing palette image:", error);
+        canvas.height = 0;
+    }
+    
+    updateNodeHeight(node);
+}
+
 app.registerExtension({
 	name: "dimtoneff.pixelArtDetector",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
@@ -108,6 +206,48 @@ app.registerExtension({
                 if (reduceColorsBeforeSwapWidget) {
                     const originalCallback = reduceColorsBeforeSwapWidget.callback;
                     reduceColorsBeforeSwapWidget.callback = (value) => {
+                        if (originalCallback) {
+                            originalCallback.call(this, value);
+                        }
+                        update();
+                    };
+                }
+
+                // Set initial visibility
+                setTimeout(update, 1);
+
+                return onNodeCreatedResult;
+            };
+        } else if (nodeData.name === "PixelArtLoadPalettes") {
+            const onNodeCreated = nodeType.prototype.onNodeCreated;
+            nodeType.prototype.onNodeCreated = function () {
+                const onNodeCreatedResult = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
+                
+                const previewCanvas = document.createElement('canvas');
+                const widget = this.addDOMWidget("palette_preview", "canvas", previewCanvas);
+                widget.canvas = previewCanvas;
+
+                const renderAllWidget = findWidgetByName(this, "render_all_palettes_in_grid");
+                const imageWidget = findWidgetByName(this, "image");
+
+                const update = () => {
+                    updatePixelArtLoadPalettesWidgets(this);
+                    updatePalettePreview(this, imageWidget.value);
+                }
+
+                if (renderAllWidget) {
+                    const originalCallback = renderAllWidget.callback;
+                    renderAllWidget.callback = (value) => {
+                        if (originalCallback) {
+                            originalCallback.call(this, value);
+                        }
+                        update();
+                    };
+                }
+
+                if (imageWidget) {
+                    const originalCallback = imageWidget.callback;
+                    imageWidget.callback = (value) => {
                         if (originalCallback) {
                             originalCallback.call(this, value);
                         }

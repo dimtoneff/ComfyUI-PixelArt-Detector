@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector v1.6.0
+# ComfyUI PixelArt Detector v1.6.1
 
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
@@ -9,6 +9,14 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 ![](./examples/community/image-039.jpg) ![](./examples/community/image-040.jpg) ![](./examples/community/image-042.jpg) ![](./examples/community/image-041.jpg) ![](./examples/community/image-044.jpg)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
+
+**Update 1.6.1**:
+
+* **Node Frontend Improvements**:
+  * `PixelArtLoadPalettes`: now has a preview of the palettes. Changing the palette triggers a preview of the unique palette colors in the node without a workflow run
+  * `PixelArtLoadPalettes`: implemented dynamic widget show/hide logic for the grid settings.
+
+![](./examples/palette_preview.PNG)
 
 **Update 1.6.0**:
 
@@ -38,7 +46,7 @@ Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
 * with custom patterns from a mask
 * also added a b&w palette
 
-![](./dither_node.png)
+![](./examples/dither_node.png)
 
 ![](./examples/community/dither-pattern_bw.png)
 
@@ -67,7 +75,7 @@ Dithering examples:
 * moved out the grid settings from the Palette Converter to the Palette Loader
 * and many other small additions
 
-![](./frames.gif)
+![](./examples/frames.gif)
 
 **Update 1.2**: PixelArtDetectorConverter will upscale the image BEFORE the pixelization/quantization process if the input image is smaller than the resize sizes. If bigger, it will downscale after
 quantization.
@@ -124,7 +132,7 @@ Restart ComfyUI afterwards.
 
 This node can generate a color palette from a given image. You can specify the number of colors and the layout of the generated palette image.
 
-![](./palette_generator.jpg)
+![](./examples/palette_generator.jpg)
 
 ### Extra info about the "PixelArt Palette Generator" Node:
 
@@ -256,7 +264,7 @@ Nodes:
 
 Workflow view:
 
-![Example](./plugin.PNG)
+![Example](./examples/plugin.PNG)
 
 **Here are some palette change examples:**
 

@@ -2,7 +2,9 @@ import collections.abc
 import numpy as np
 import cv2
 import torch
-import os, folder_paths, math
+import os
+import folder_paths
+import math
 from pathlib import Path
 from PIL import Image, ImageStat, ImageFont, ImageOps, ImageDraw
 from itertools import repeat, product
@@ -47,14 +49,15 @@ def scanFilesInDir(input_dir):
 
 def getFont(size: int = 26, fontName: str = "Roboto-Regular.ttf"):
     nodes_path = folder_paths.get_folder_paths("custom_nodes")
-    font_path = os.path.normpath(os.path.join(nodes_path[0], "ComfyUI-PixelArt-Detector/fonts/", fontName))
+    font_path = os.path.normpath(os.path.join(
+        nodes_path[0], "ComfyUI-PixelArt-Detector/fonts/", fontName))
     if not os.path.exists(font_path):
         print(f"ERROR: {fontName} NOT FOUND!")
         return ImageFont.load_default()
     return ImageFont.truetype(str(font_path), size=size)
 
 
-def calcFontSizeToFitWidthOfImage(image: Image, text: str, fontSize: int = 26, fontName: str = "Roboto-Regular.ttf"):
+def calcFontSizeToFitWidthOfImage(image: Image.Image, text: str, fontSize: int = 26, fontName: str = "Roboto-Regular.ttf"):
     # Create a draw object
     draw = ImageDraw.Draw(image)
     if not hasattr(draw, "textbbox"):
@@ -67,7 +70,8 @@ def calcFontSizeToFitWidthOfImage(image: Image, text: str, fontSize: int = 26, f
     while text_width > image.width:
         # Reduce the font size by 1
         fontSize -= 1
-        print(f"Reduced font size for text '{text}' to: {fontSize} to fit the img width! Text width: {text_width} vs Image width: {image.width}")
+        print(
+            f"Reduced font size for text '{text}' to: {fontSize} to fit the img width! Text width: {text_width} vs Image width: {image.width}")
         font = getFont(fontSize, fontName)
         # Get the new text width and height
         text_width = draw.textbbox((0, 0), text, font)[2]
@@ -86,7 +90,7 @@ def transformPalette(palette: list, output: str = "image"):
     return palette
 
 
-def drawTextInImage(image: Image, text, fontSize: int = 26, fontColor=(255, 0, 0), strokeColor="white"):
+def drawTextInImage(image: Image.Image, text, fontSize: int = 26, fontColor=(255, 0, 0), strokeColor="white"):
     # Create a draw object
     draw = ImageDraw.Draw(image)
     # Recalculate font size to fit img width
@@ -106,22 +110,26 @@ def drawTextInImage(image: Image, text, fontSize: int = 26, fontColor=(255, 0, 0
     x = 0  # left margin
     y = height - (text_height + 5)  # bottom margin
     # Draw the text on the image
-    draw.text((x, y), text, font=font, fill=fontColor, stroke_width=2, stroke_fill=strokeColor)
+    draw.text((x, y), text, font=font, fill=fontColor,
+              stroke_width=2, stroke_fill=strokeColor)
 
 
 def getPalettesPath():
     nodes_path = folder_paths.get_folder_paths("custom_nodes")
-    full_pallete_path = os.path.normpath(os.path.join(nodes_path[0], "ComfyUI-PixelArt-Detector/palettes/"))
+    full_pallete_path = os.path.normpath(os.path.join(
+        nodes_path[0], "ComfyUI-PixelArt-Detector/palettes/"))
     return Path(full_pallete_path)
 
 
 def getPaletteImage(palette_from_image):
-    full_pallete_path = os.path.normpath(os.path.join(getPalettesPath(), palette_from_image))
+    full_pallete_path = os.path.normpath(
+        os.path.join(getPalettesPath(), palette_from_image))
     return Path(full_pallete_path)
 
 
 def paletteToTuples(palette, n):
-    return list(zip(*[iter(palette)] * n))  # zip the array with itself n times and convert it to list
+    # zip the array with itself n times and convert it to list
+    return list(zip(*[iter(palette)] * n))
 
 
 # Tensor to PIL
@@ -182,7 +190,8 @@ def halftone_45_degrees_pattern(order):
 
     # Concentric Bresenham circles.
     for r in range(1, int(1.41421 * size)):
-        t1 = r * 2 // 16  # To 1-bit fixed point, i.e. increment radius by 0.5 per iteration.
+        # To 1-bit fixed point, i.e. increment radius by 0.5 per iteration.
+        t1 = r * 2 // 16
         x, y = r, 0
         while x >= y:
             # Order is relevant, scatters threshold increments more evenly.
@@ -208,8 +217,10 @@ def halftone_45_degrees_pattern(order):
 
 
 def normalize_pattern(pattern):
-    pattern = pattern / pattern.amax(dim=(0, 1), keepdim=True) - 0.5  # Normalize to range [-0.5,0.5].
-    order = math.log2(math.sqrt(pattern.shape[0] * pattern.shape[1]))  # Calculate order from sides.
+    # Normalize to range [-0.5,0.5].
+    pattern = pattern / pattern.amax(dim=(0, 1), keepdim=True) - 0.5
+    # Calculate order from sides.
+    order = math.log2(math.sqrt(pattern.shape[0] * pattern.shape[1]))
     pattern = pattern * (1 - 0.5 ** (2 * order))  # Rescale range to order.
     return pattern
 
@@ -226,19 +237,21 @@ def ditherBayer(im, pal_im, order):
     num_colors = len(pal_im.getpalette()) // 3
     spread = 2 * 256 / num_colors
     bayer_n = int(math.log2(order))
-    bayer_matrix = torch.from_numpy(spread * _normalized_bayer_matrix(bayer_n) + 0.5)
+    bayer_matrix = torch.from_numpy(
+        spread * _normalized_bayer_matrix(bayer_n) + 0.5)
 
     result = torch.from_numpy(np.array(im).astype(np.float32))
     tw = math.ceil(result.shape[0] / bayer_matrix.shape[0])
     th = math.ceil(result.shape[1] / bayer_matrix.shape[1])
     tiled_matrix = bayer_matrix.tile(tw, th).unsqueeze(-1)
-    result.add_(tiled_matrix[:result.shape[0], :result.shape[1]]).clamp_(0, 255)
+    result.add_(tiled_matrix[:result.shape[0],
+                :result.shape[1]]).clamp_(0, 255)
     result = result.to(dtype=torch.uint8)
 
     return Image.fromarray(result.cpu().numpy())
 
 
-def npQuantize(image: Image, palette: list) -> Image:
+def npQuantize(image: Image.Image, palette: list) -> Image.Image:
     colors = np.asarray(palette)
     pix = np.asarray(image.convert(None))
     # use NumPy’s broadcasting feature to subtract each of the palettes color from each pixel in the image
@@ -253,7 +266,7 @@ def npQuantize(image: Image, palette: list) -> Image:
 
 
 # https://theartofdoingcs.com/blog/f/bit-me
-def pixelate(image: Image, grid_size: int, palette: list):
+def pixelate(image: Image.Image, grid_size: int, palette: list):
     if len(palette) > 0:
         if not isinstance(palette[0], tuple):
             palette = paletteToTuples(palette, 3)
@@ -269,7 +282,8 @@ def pixelate(image: Image, grid_size: int, palette: list):
             median_color = tuple(median_color)
 
             closest_color = distance(median_color, palette)
-            median_pixel = Image.new('RGB', (grid_size, grid_size), closest_color)
+            median_pixel = Image.new(
+                'RGB', (grid_size, grid_size), closest_color)
             pixel_image.paste(median_pixel, (i, j))
 
     return pixel_image
@@ -291,7 +305,7 @@ def distance(median_color, palette: list[tuple]):
     return closest_color
 
 
-def determine_best_k(image: Image, max_k: int):
+def determine_best_k(image: Image.Image, max_k: int):
     # Convert the image to RGB mode
     image = image.convert("RGB")
 
@@ -302,11 +316,14 @@ def determine_best_k(image: Image, max_k: int):
     # Calculate distortion for different values of k
     distortions = []
     for k in range(1, max_k + 1):
-        quantized_image = image.quantize(colors=k, method=0, kmeans=k, dither=0)
-        centroids = np.array(quantized_image.getpalette()[:k * 3]).reshape(-1, 3)
+        quantized_image = image.quantize(
+            colors=k, method=0, kmeans=k, dither=Image.Dither.NONE)
+        centroids = np.array(quantized_image.getpalette()
+                             [:k * 3]).reshape(-1, 3)
 
         # Calculate distortions
-        distances = np.linalg.norm(pixel_indices[:, np.newaxis] - centroids, axis=2)
+        distances = np.linalg.norm(
+            pixel_indices[:, np.newaxis] - centroids, axis=2)
         min_distances = np.min(distances, axis=1)
         distortions.append(np.sum(min_distances ** 2))
 
@@ -323,13 +340,14 @@ def determine_best_k(image: Image, max_k: int):
     return best_k
 
 
-def kCentroid(image: Image, width: int, height: int, centroids: int):
+def kCentroid(image: Image.Image, width: int, height: int, centroids: int):
     image = image.convert("RGB")
 
     # Create an empty array for the downscaled image
     downscaled = np.zeros((height, width, 3), dtype=np.uint8)
 
-    print(f"Size detected and reduced to \033[93m{width}\033[0m x \033[93m{height}\033[0m")
+    print(
+        f"Size detected and reduced to \033[93m{width}\033[0m x \033[93m{height}\033[0m")
 
     # Calculate the scaling factors
     wFactor = image.width / width
@@ -338,10 +356,12 @@ def kCentroid(image: Image, width: int, height: int, centroids: int):
     # Iterate over each tile in the downscaled image
     for x, y in product(range(width), range(height)):
         # Crop the tile from the original image
-        tile = image.crop((x * wFactor, y * hFactor, (x * wFactor) + wFactor, (y * hFactor) + hFactor))
+        tile = image.crop(
+            (x * wFactor, y * hFactor, (x * wFactor) + wFactor, (y * hFactor) + hFactor))
 
         # Quantize the colors of the tile using k-means clustering
-        tile = tile.quantize(colors=centroids, method=1, kmeans=centroids).convert("RGB")
+        tile = tile.quantize(colors=centroids, method=1,
+                             kmeans=centroids).convert("RGB")
 
         # Get the color counts and find the most common color
         color_counts = tile.getcolors()
@@ -353,9 +373,9 @@ def kCentroid(image: Image, width: int, height: int, centroids: int):
     return Image.fromarray(downscaled, mode='RGB')
 
 
-def pixel_detect(image: Image):
+def pixel_detect(image: Image.Image):
     # [Astropulse]
-    # Thanks to https://github.com/paultron for optimizing my garbage code 
+    # Thanks to https://github.com/paultron for optimizing my garbage code
     # I swapped the axis, so they accurately reflect the horizontal and vertical scaling factor for images with uneven ratios
 
     # Convert the image to a NumPy array
@@ -448,12 +468,14 @@ def cv2_quantize(image, max_k: int, flags=cv2.KMEANS_RANDOM_CENTERS, attempts: i
     image = image.reshape((rows * cols, channels))
 
     # Define criteria
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, criteriaMaxIterations, criteriaMinAccuracy)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
+                criteriaMaxIterations, criteriaMinAccuracy)
 
     # Apply k-means clustering
     print(
         f"Running opencv.kmeans. Flags: {flags}, attempts: {attempts}, criteriaMaxIterations: {criteriaMaxIterations}, criteriaMinAccuracy: {criteriaMinAccuracy}, max_k: {max_k}")
-    compactness, labels, centers = cv2.kmeans(image, max_k, None, criteria, attempts, flags)
+    compactness, labels, centers = cv2.kmeans(
+        image, max_k, None, criteria, attempts, flags)
 
     # Convert centers to uint8 and index with labels
     centers = np.uint8(centers)
@@ -480,11 +502,11 @@ def tensor2cv2img(tensor) -> np.ndarray:
     return cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
 
 
-def convert_from_cv2_to_image(img: np.ndarray) -> Image:
+def convert_from_cv2_to_image(img: np.ndarray) -> Image.Image:
     return Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
 
-def convert_from_image_to_cv2(img: Image) -> np.ndarray:
+def convert_from_image_to_cv2(img: Image.Image) -> np.ndarray:
     return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
 
@@ -519,12 +541,13 @@ def cv2img2tensor(imgs, bgr2rgb=True, float32=True):
 
 
 # From https://github.com/Chadys/QuantizeImageMethods
-def cleanupColors(image: Image, threshold_pixel_percentage: float, nb_colours: int, method):
+def cleanupColors(image: Image.Image, threshold_pixel_percentage: float, nb_colours: int, method):
     nb_pixels: int = image.width * image.height
     quantized_img: Image.Image
     while True:
         print(f"Attempt quantizing with colors: {nb_colours}")
-        quantized_img = image.quantize(colors=nb_colours, method=method, kmeans=nb_colours)
+        quantized_img = image.quantize(
+            colors=nb_colours, method=method, kmeans=nb_colours)
         nb_colours_under_threshold = 0
         colours_list: [Tuple[int, int]] = quantized_img.getcolors(nb_colours)
         for (count, pixel) in colours_list:
@@ -533,10 +556,12 @@ def cleanupColors(image: Image, threshold_pixel_percentage: float, nb_colours: i
         print(f"Colors under threshold: {nb_colours_under_threshold}")
         if nb_colours_under_threshold == 0:
             break
-        nb_colours -= -(-nb_colours_under_threshold // 2)  # ceil integer division
+        nb_colours -= -(-nb_colours_under_threshold //
+                        2)  # ceil integer division
 
     palette: [int] = quantized_img.getpalette()
-    colours_list: [[int]] = [palette[i: i + 3] for i in range(0, nb_colours * 3, 3)]
+    colours_list: [[int]] = [palette[i: i + 3]
+                             for i in range(0, nb_colours * 3, 3)]
     print(f"Colors list: {colours_list}")
 
     return quantized_img.convert("RGB")
@@ -572,7 +597,8 @@ def smart_grid_image(images: list, cols=6, size=(256, 256), add_border=True, bor
         right = pad_w - left
         bottom = pad_h - top
         padding = (left, top, right, bottom)  # left, top, right, bottom
-        img_resized = ImageOps.expand(img.resize((int(thumb_w), int(thumb_h))), padding)
+        img_resized = ImageOps.expand(img.resize(
+            (int(thumb_w), int(thumb_h))), padding)
 
         # if add_border:
         #     img_resized = ImageOps.expand(img_resized, border=border_width//2, fill=border_color)
@@ -587,12 +613,14 @@ def smart_grid_image(images: list, cols=6, size=(256, 256), add_border=True, bor
 
     # create empty image to put thumbnails
     new_image = Image.new('RGB',
-                          (cols * size[0] + (cols - 1) * border_width, rows * row_height + (rows - 1) * border_width),
+                          (cols * size[0] + (cols - 1) * border_width,
+                           rows * row_height + (rows - 1) * border_width),
                           border_color)
 
     for i, img in enumerate(images_resized):
         if add_border:
-            border_img = ImageOps.expand(img, border=border_width // 2, fill=border_color)
+            border_img = ImageOps.expand(
+                img, border=border_width // 2, fill=border_color)
             x = (i % cols) * (size[0] + border_width)
             y = (i // cols) * (row_height + border_width)
             if border_img.size == (size[0], size[1]):
@@ -611,7 +639,8 @@ def smart_grid_image(images: list, cols=6, size=(256, 256), add_border=True, bor
                 img = img.resize((size[0], size[1]))
                 new_image.paste(img, (x, y, x + size[0], y + size[1]))
 
-    new_image = ImageOps.expand(new_image, border=border_width, fill=border_color)
+    new_image = ImageOps.expand(
+        new_image, border=border_width, fill=border_color)
 
     return new_image
 
@@ -625,7 +654,7 @@ def process_pycluster_result(
         representatives: [[float]],
         shape: Tuple[int, ...],
         conversion_method: int = cv2.COLOR_BGR2RGB,
-) -> tuple[Image, ndarray]:
+) -> tuple[Image.Image, ndarray]:
     representatives: np.ndarray = np.uint8(representatives)
     for index_cluster, cluster in enumerate(clusters):
         for pixel in cluster:
@@ -638,14 +667,15 @@ def process_pycluster_result(
     return Image.fromarray(quantized_img), representatives
 
 
-def get_img_data(img_input: Image, mini: bool = False, conversion_method: int = cv2.COLOR_RGB2BGR) -> Tuple[np.ndarray, int, np.ndarray]:
+def get_img_data(img_input: Image.Image, mini: bool = False, conversion_method: int = cv2.COLOR_RGB2BGR) -> Tuple[np.ndarray, int, np.ndarray]:
     img: np.ndarray = cv2.cvtColor(np.array(img_input), conversion_method)
     ratio: float = min(
         MAX_SIZE / img.shape[0], MAX_SIZE / img.shape[1]
     )  # calculate ratio
     if mini:
         ratio /= 6
-    img = cv2.resize(img, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_NEAREST_EXACT)
+    img = cv2.resize(img, None, fx=ratio, fy=ratio,
+                     interpolation=cv2.INTER_NEAREST_EXACT)
 
     nb_pixels: int = img.size
 
@@ -668,38 +698,41 @@ def getPyclusterMetric(method: str) -> distance_metric:
     return distance_metric(switch.get(method, type_metric.EUCLIDEAN_SQUARE))
 
 
-def pycluster_k(img_input: Image, func: Callable, center_func_str: str, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
+def pycluster_k(img_input: Image.Image, func: Callable, center_func_str: str, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image.Image, ndarray]:
     img, nb_pixels, flat_img = get_img_data(img_input)
 
     # elbow_instance: elbow.elbow = elbow.elbow(flat_img, kmin, kmax, initializer=center_initializer.random_center_initializer)
-    elbow_instance: elbow.elbow = elbow.elbow(flat_img, kmin, kmax, initializer=center_initializer.kmeans_plusplus_initializer)
+    elbow_instance: elbow.elbow = elbow.elbow(
+        flat_img, kmin, kmax, initializer=center_initializer.kmeans_plusplus_initializer)
     # center_initializer.random_center_initializer
 
     elbow_instance.process()
     amount_clusters: int = elbow_instance.get_amount()
-    print(f"kmin: {kmin}, kmax: {kmax}. Amount of elbow found clusters: {amount_clusters}")
+    print(
+        f"kmin: {kmin}, kmax: {kmax}. Amount of elbow found clusters: {amount_clusters}")
 
     amount_candidates = center_initializer.kmeans_plusplus_initializer.FARTHEST_CENTER_CANDIDATE
     centers: [np.ndarray] = center_initializer.kmeans_plusplus_initializer(
         flat_img, amount_clusters, amount_candidates
     ).initialize()
 
-    clusterer: Union[kmeans.kmeans, kmedians.kmedians] = func(flat_img, centers, metric=getPyclusterMetric(metric))
+    clusterer: Union[kmeans.kmeans, kmedians.kmedians] = func(
+        flat_img, centers, metric=getPyclusterMetric(metric))
     clusterer.process()
     clusters: [[int]] = clusterer.get_clusters()
     representatives: [[float]] = eval("clusterer." + center_func_str + "()")
     return process_pycluster_result(flat_img, clusters, representatives, img.shape)
 
 
-def pycluster_kmeans(img_input: Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
+def pycluster_kmeans(img_input: Image.Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image.Image, ndarray]:
     return pycluster_k(img_input, kmeans.kmeans, "get_centers", kmin, kmax, metric)
 
 
-def pycluster_kmedians(img_input: Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
+def pycluster_kmedians(img_input: Image.Image, kmin: int = 2, kmax: int = 20, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image.Image, ndarray]:
     return pycluster_k(img_input, kmedians.kmedians, "get_medians", kmin, kmax, metric)
 
 
-def pycluster_kmeans_fixed(img_input: Image, k: int = 16, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image, ndarray]:
+def pycluster_kmeans_fixed(img_input: Image.Image, k: int = 16, metric: str = "EUCLIDEAN_SQUARE") -> tuple[Image.Image, ndarray]:
     img, nb_pixels, flat_img = get_img_data(img_input)
 
     amount_candidates = center_initializer.kmeans_plusplus_initializer.FARTHEST_CENTER_CANDIDATE
@@ -707,7 +740,8 @@ def pycluster_kmeans_fixed(img_input: Image, k: int = 16, metric: str = "EUCLIDE
         flat_img, k, amount_candidates
     ).initialize()
 
-    clusterer: Union[kmeans.kmeans, kmedians.kmedians] = kmeans.kmeans(flat_img, centers, metric=getPyclusterMetric(metric))
+    clusterer: Union[kmeans.kmeans, kmedians.kmedians] = kmeans.kmeans(
+        flat_img, centers, metric=getPyclusterMetric(metric))
     clusterer.process()
     clusters: [[int]] = clusterer.get_clusters()
     representatives: [[float]] = clusterer.get_centers()
