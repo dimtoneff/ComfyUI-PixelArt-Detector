@@ -46,7 +46,6 @@ if not hasattr(np, "warnings"):
     np.warnings = warnings
 
 
-
 def downscale_to_1x_keep_ar(img: Image.Image) -> Image.Image:
     """
     Use pixel_detect's idea of 'how much to downscale', but force a single
