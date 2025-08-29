@@ -46,7 +46,6 @@ if not hasattr(np, "warnings"):
     np.warnings = warnings
 
 
-from PIL import Image
 
 def downscale_to_1x_keep_ar(img: Image.Image) -> Image.Image:
     """
