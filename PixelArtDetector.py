@@ -46,34 +46,6 @@ if not hasattr(np, "warnings"):
     np.warnings = warnings
 
 
-def downscale_to_1x_keep_ar(img: Image.Image) -> Image.Image:
-    """
-    Use pixel_detect's idea of 'how much to downscale', but force a single
-    uniform integer scale so aspect ratio is preserved.
-    """
-    ow, oh = img.size
-
-    # What pixel_detect *would* downscale to (possibly with non-uniform scale)
-    ds = pixel_detect(img)
-    dw, dh = ds.size
-
-    # If nothing changed or something odd, just return original
-    if dw <= 0 or dh <= 0 or (dw == ow and dh == oh):
-        return img
-
-    # Derive the per-axis factors it effectively used
-    sx = max(1, round(ow / dw))
-    sy = max(1, round(oh / dh))
-
-    # Force a single integer scale (pick the stronger downscale to avoid upscaling)
-    s = max(sx, sy)
-
-    # Compute new size with preserved AR (integer NEAREST to keep pixel edges crisp)
-    nw = max(1, ow // s)
-    nh = max(1, oh // s)
-    return img.resize((nw, nh), Image.Resampling.NEAREST)
-
-
 class GRID_SETTING(Enum):
     FONT_SIZE = "font_size"
     FONT_COLOR = "font_color"
@@ -436,6 +408,7 @@ class PixelArtDetectorConverter:
             "palette": (["NES", "GAMEBOY"], {"default": "GAMEBOY"}),
             "resize_w": ("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
             "resize_h": ("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
+            "resize_type": (["contain", "fit", "stretch"], {"default": "contain"}),
             "pixelize": (
                 ["Image.quantize", "Grid.pixelate", "NP.quantize"],
                 {"default": "Image.quantize"}),
@@ -479,7 +452,7 @@ class PixelArtDetectorConverter:
     CATEGORY = "image/PixelArt🕹️"
     OUTPUT_IS_LIST = (True,)
 
-    def process(self, images, palette, resize_w, resize_h, pixelize, grid_pixelate_grid_scan_size,
+    def process(self, images, palette, resize_w, resize_h, resize_type, pixelize, grid_pixelate_grid_scan_size,
                 reduce_colors_before_palette_swap, reduce_colors_method, reduce_colors_max_colors, apply_pixeldetector_max_colors,
                 image_quantize_reduce_method, opencv_settings, opencv_kmeans_centers, opencv_kmeans_attempts,
                 opencv_criteria_max_iterations, pycluster_kmeans_metrics, cleanup, cleanup_colors, cleanup_pixels_threshold, dither, paletteList=None
@@ -506,8 +479,8 @@ class PixelArtDetectorConverter:
 
             # resize if image needs upscale
             if resizeBefore and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
-                pilImage = pilImage.resize(
-                    (resize_w, resize_h), resample=Image.Resampling.NEAREST)
+                pilImage = resize_image(
+                    pilImage, resize_w, resize_h, resize_type)
                 print(
                     f"### {self.CGREEN}[PixelArtDetectorConverter]{self.CEND} Image resized before reducing and quantizing!")
 
@@ -590,7 +563,8 @@ class PixelArtDetectorConverter:
 
             # resize if image needs downscale
             if not resizeBefore and not isGrid and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
-                PILOutput = ImageOps.contain(PILOutput, (resize_w, resize_h), Image.Resampling.NEAREST)
+                PILOutput = resize_image(
+                    PILOutput, resize_w, resize_h, resize_type)
 
             # Convert to torch.Tensor
             PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
@@ -712,6 +686,7 @@ class PixelArtDetectorSave:
                 "save_exif": ("BOOLEAN", {"default": True, "label_on": "enabled", "label_off": "disabled"}),
                 "resize_w": ("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
                 "resize_h": ("INT", {"default": 512, "min": 0, "max": 2048, "step": 1},),
+                "resize_type": (["contain", "fit", "stretch"], {"default": "contain"}),
             },
             "hidden": {"prompt": "PROMPT", "extra_pnginfo": "EXTRA_PNGINFO"},
         }
@@ -724,7 +699,7 @@ class PixelArtDetectorSave:
     CATEGORY = "image/PixelArt🕹️"
 
     def process(self, images, reduce_palette, reduce_palette_max_colors, filename_prefix, webp_mode, compression,
-                resize_w, resize_h, prompt=None, extra_pnginfo=None, save_jpg=False, save_exif=True):
+                resize_w, resize_h, resize_type, prompt=None, extra_pnginfo=None, save_jpg=False, save_exif=True):
 
         results = list()
         for image in images:
@@ -754,7 +729,8 @@ class PixelArtDetectorSave:
 
             # resize
             if resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
-                PILOutput = ImageOps.contain(PILOutput, (resize_w, resize_h), Image.Resampling.NEAREST)
+                PILOutput = resize_image(
+                    PILOutput, resize_w, resize_h, resize_type)
 
             results.append(self.saveImage(
                 PILOutput,

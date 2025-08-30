@@ -406,6 +406,36 @@ def pixel_detect(image: Image.Image):
     )
 
 
+def downscale_to_1x_keep_ar(img: Image.Image) -> Image.Image:
+    """
+    Use pixel_detect's idea of 'how much to downscale', but force a single
+    uniform integer scale so aspect ratio is preserved.
+
+    It avoids cases where uncommon aspect ratios got "resized weirdly" because pixel_detect decided on different horizontal/vertical scaling.
+    """
+    ow, oh = img.size
+
+    # What pixel_detect *would* downscale to (possibly with non-uniform scale)
+    ds = pixel_detect(img)
+    dw, dh = ds.size
+
+    # If nothing changed or something odd, just return original
+    if dw <= 0 or dh <= 0 or (dw == ow and dh == oh):
+        return img
+
+    # Derive the per-axis factors it effectively used
+    sx = max(1, round(ow / dw))
+    sy = max(1, round(oh / dh))
+
+    # Force a single integer scale (pick the stronger downscale to avoid upscaling)
+    s = max(sx, sy)
+
+    # Compute new size with preserved AR (integer NEAREST to keep pixel edges crisp)
+    nw = max(1, ow // s)
+    nh = max(1, oh // s)
+    return resize_image(img, nw, nh, "stretch")
+
+
 # Converts a Tensor into a Numpy array
 # |imtype|: the desired type of the converted numpy array
 def tensor2im(image_tensor, imtype=np.uint8, normalize=True):
@@ -646,6 +676,27 @@ def smart_grid_image(images: list, cols=6, size=(256, 256), add_border=True, bor
 
 
 MAX_SIZE = 512
+
+
+def resize_image(image: Image.Image, width: int, height: int, resize_type: str = "contain") -> Image.Image:
+    """
+    Resize an image using different methods based on the resize_type parameter.
+
+    Args:
+        image (Image.Image): The PIL Image to resize
+        width (int): Target width
+        height (int): Target height
+        resize_type (str): Type of resizing - "contain", "fit", or "stretch"
+
+    Returns:
+        Image.Image: The resized image
+    """
+    if resize_type == "fit":
+        return ImageOps.fit(image, (width, height), Image.Resampling.NEAREST)
+    elif resize_type == "stretch":
+        return image.resize((width, height), Image.Resampling.NEAREST)
+    else:  # contain
+        return ImageOps.contain(image, (width, height), Image.Resampling.NEAREST)
 
 
 def process_pycluster_result(
