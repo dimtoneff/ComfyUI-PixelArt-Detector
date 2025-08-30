@@ -1,8 +1,8 @@
 {
   "id": "88d769c9-64f0-48f7-abe3-2821737a3598",
   "revision": 0,
-  "last_node_id": 37,
-  "last_link_id": 48,
+  "last_node_id": 38,
+  "last_link_id": 52,
   "nodes": [
     {
       "id": 1,
@@ -25,7 +25,7 @@
           "type": "IMAGE",
           "slot_index": 0,
           "links": [
-            44
+            49
           ]
         },
         {
@@ -63,7 +63,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 45
+          "link": 51
         }
       ],
       "outputs": [],
@@ -79,47 +79,6 @@
         "disabled",
         "enabled",
         "output"
-      ]
-    },
-    {
-      "id": 35,
-      "type": "PixelArtLoadPalettes",
-      "pos": [
-        366.98529052734375,
-        -125.19602966308594
-      ],
-      "size": [
-        400,
-        280
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "paletteList",
-          "type": "LIST",
-          "links": [
-            46
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui-pixelart-detector",
-        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
-        "Node name for S&R": "PixelArtLoadPalettes"
-      },
-      "widgets_values": [
-        "31-1x.png",
-        false,
-        "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'",
-        40,
-        "#f40e12",
-        "#fff",
-        6,
-        true,
-        3
       ]
     },
     {
@@ -169,7 +128,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 47
+          "link": 52
         },
         {
           "name": "custom_pattern",
@@ -199,15 +158,15 @@
       ]
     },
     {
-      "id": 34,
+      "id": 38,
       "type": "PixelArtDetectorConverter",
       "pos": [
-        822.5328369140625,
-        -254.25172424316406
+        820,
+        -180
       ],
       "size": [
         400,
-        396
+        420
       ],
       "flags": {},
       "order": 2,
@@ -216,13 +175,13 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 44
+          "link": 49
         },
         {
           "name": "paletteList",
           "shape": 7,
           "type": "LIST",
-          "link": 46
+          "link": 50
         }
       ],
       "outputs": [
@@ -231,26 +190,27 @@
           "shape": 6,
           "type": "IMAGE",
           "links": [
-            45,
-            47
+            51,
+            52
           ]
         }
       ],
       "properties": {
         "cnr_id": "comfyui-pixelart-detector",
-        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
+        "ver": "51cf5d2390b15f00e0005609f8cd9a5c8c968486",
         "Node name for S&R": "PixelArtDetectorConverter"
       },
       "widgets_values": [
         "GAMEBOY",
         512,
         512,
+        "contain",
         "Image.quantize",
         2,
         true,
         "Image.quantize",
-        64,
-        false,
+        128,
+        true,
         "MAXCOVERAGE",
         "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n",
         "RANDOM_CENTERS",
@@ -258,50 +218,92 @@
         10,
         "EUCLIDEAN_SQUARE",
         "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
-        true,
+        false,
         0.02,
         "none"
+      ]
+    },
+    {
+      "id": 35,
+      "type": "PixelArtLoadPalettes",
+      "pos": [
+        366.98529052734375,
+        -125.19602966308594
+      ],
+      "size": [
+        400,
+        136
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "links": [
+            50
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-pixelart-detector",
+        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
+        "Node name for S&R": "PixelArtLoadPalettes"
+      },
+      "widgets_values": [
+        "aquaverse-1x.png",
+        false,
+        "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'",
+        40,
+        "#f40e12",
+        "#fff",
+        6,
+        true,
+        3,
+        ""
       ]
     }
   ],
   "links": [
     [
-      44,
-      1,
+      48,
+      36,
       0,
-      34,
+      37,
       0,
       "IMAGE"
     ],
     [
-      45,
-      34,
+      49,
+      1,
+      0,
+      38,
+      0,
+      "IMAGE"
+    ],
+    [
+      50,
+      35,
+      0,
+      38,
+      1,
+      "LIST"
+    ],
+    [
+      51,
+      38,
       0,
       4,
       0,
       "IMAGE"
     ],
     [
-      46,
-      35,
-      0,
-      34,
-      1,
-      "LIST"
-    ],
-    [
-      47,
-      34,
+      52,
+      38,
       0,
       36,
-      0,
-      "IMAGE"
-    ],
-    [
-      48,
-      36,
-      0,
-      37,
       0,
       "IMAGE"
     ]
@@ -310,13 +312,13 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.8264462809917354,
+      "scale": 0.7513148009015777,
       "offset": [
-        -113.29332551548019,
-        1137.556007365804
+        -93.85913100476037,
+        1062.83567568412
       ]
     },
-    "frontendVersion": "1.24.4",
+    "frontendVersion": "1.25.11",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,

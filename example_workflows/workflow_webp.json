@@ -1,8 +1,8 @@
 {
   "id": "578816f2-4dd0-4cb2-ac16-1f2d1845a943",
   "revision": 0,
-  "last_node_id": 122,
-  "last_link_id": 218,
+  "last_node_id": 123,
+  "last_link_id": 221,
   "nodes": [
     {
       "id": 14,
@@ -524,7 +524,8 @@
         false,
         true,
         512,
-        512
+        512,
+        "contain"
       ]
     },
     {
@@ -607,57 +608,6 @@
       ]
     },
     {
-      "id": 4,
-      "type": "CheckpointLoaderSimple",
-      "pos": [
-        -90,
-        -620
-      ],
-      "size": [
-        350,
-        100
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            46
-          ]
-        },
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "slot_index": 1,
-          "links": [
-            47
-          ]
-        },
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "slot_index": 2,
-          "links": []
-        }
-      ],
-      "title": "Load Checkpoint - BASE",
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.49",
-        "Node name for S&R": "CheckpointLoaderSimple"
-      },
-      "widgets_values": [
-        "SDXL\\halcyonSDXL_v14.safetensors"
-      ],
-      "color": "#323",
-      "bgcolor": "#535"
-    },
-    {
       "id": 49,
       "type": "LoraLoader",
       "pos": [
@@ -725,7 +675,7 @@
         110
       ],
       "flags": {},
-      "order": 12,
+      "order": 11,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -760,10 +710,10 @@
       ],
       "size": [
         400,
-        280
+        136
       ],
       "flags": {},
-      "order": 13,
+      "order": 12,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -771,7 +721,7 @@
           "name": "paletteList",
           "type": "LIST",
           "links": [
-            216
+            220
           ]
         }
       ],
@@ -789,7 +739,8 @@
         "#fff",
         6,
         true,
-        3
+        3,
+        ""
       ]
     },
     {
@@ -826,7 +777,7 @@
           "links": [
             208,
             210,
-            217
+            219
           ]
         }
       ],
@@ -857,7 +808,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 218
+          "link": 221
         }
       ],
       "outputs": [],
@@ -873,70 +824,6 @@
         "disabled",
         "enabled",
         "output"
-      ]
-    },
-    {
-      "id": 121,
-      "type": "PixelArtDetectorConverter",
-      "pos": [
-        1499.5843505859375,
-        -9.780627250671387
-      ],
-      "size": [
-        400,
-        396
-      ],
-      "flags": {},
-      "order": 21,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 217
-        },
-        {
-          "name": "paletteList",
-          "shape": 7,
-          "type": "LIST",
-          "link": 216
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "shape": 6,
-          "type": "IMAGE",
-          "links": [
-            218
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui-pixelart-detector",
-        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
-        "Node name for S&R": "PixelArtDetectorConverter"
-      },
-      "widgets_values": [
-        "GAMEBOY",
-        512,
-        512,
-        "Image.quantize",
-        2,
-        true,
-        "Image.quantize",
-        128,
-        true,
-        "MAXCOVERAGE",
-        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n",
-        "RANDOM_CENTERS",
-        10,
-        10,
-        "EUCLIDEAN_SQUARE",
-        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
-        false,
-        0.02,
-        "none"
       ]
     },
     {
@@ -1021,6 +908,122 @@
       ],
       "color": "#223",
       "bgcolor": "#335"
+    },
+    {
+      "id": 123,
+      "type": "PixelArtDetectorConverter",
+      "pos": [
+        1510,
+        -50
+      ],
+      "size": [
+        400,
+        420
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 219
+        },
+        {
+          "name": "paletteList",
+          "shape": 7,
+          "type": "LIST",
+          "link": 220
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "shape": 6,
+          "type": "IMAGE",
+          "links": [
+            221
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-pixelart-detector",
+        "ver": "51cf5d2390b15f00e0005609f8cd9a5c8c968486",
+        "Node name for S&R": "PixelArtDetectorConverter"
+      },
+      "widgets_values": [
+        "GAMEBOY",
+        512,
+        512,
+        "contain",
+        "Image.quantize",
+        2,
+        true,
+        "Image.quantize",
+        128,
+        true,
+        "MAXCOVERAGE",
+        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n",
+        "RANDOM_CENTERS",
+        10,
+        10,
+        "EUCLIDEAN_SQUARE",
+        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
+        false,
+        0.02,
+        "none"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        -90,
+        -620
+      ],
+      "size": [
+        350,
+        100
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            46
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 1,
+          "links": [
+            47
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 2,
+          "links": []
+        }
+      ],
+      "title": "Load Checkpoint - BASE",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.49",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "SDXL\\sdxlUnstableDiffusers_v11Rundiffusion.safetensors"
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
     }
   ],
   "links": [
@@ -1169,24 +1172,24 @@
       "IMAGE"
     ],
     [
-      216,
-      122,
-      0,
-      121,
-      1,
-      "LIST"
-    ],
-    [
-      217,
+      219,
       17,
       0,
-      121,
+      123,
       0,
       "IMAGE"
     ],
     [
-      218,
-      121,
+      220,
+      122,
+      0,
+      123,
+      1,
+      "LIST"
+    ],
+    [
+      221,
+      123,
       0,
       109,
       0,
@@ -1198,8 +1201,8 @@
       "id": 1,
       "title": "Base Prompt",
       "bounding": [
-        381,
-        -215,
+        380,
+        -210,
         252,
         361
       ],
@@ -1211,8 +1214,8 @@
       "id": 2,
       "title": "Text Prompts",
       "bounding": [
-        -81,
-        -264,
+        -80,
+        -260,
         339,
         622
       ],
@@ -1237,7 +1240,7 @@
       "id": 4,
       "title": "Empty Latent Image",
       "bounding": [
-        344,
+        340,
         160,
         339,
         443
@@ -1251,7 +1254,7 @@
       "title": "VAE Decoder",
       "bounding": [
         730,
-        -804,
+        -800,
         360,
         350
       ],
@@ -1263,8 +1266,8 @@
       "id": 6,
       "title": "Step Control",
       "bounding": [
-        738,
-        252,
+        740,
+        250,
         284,
         524
       ],
@@ -1276,13 +1279,13 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.8522546971495678,
+      "scale": 0.7043427249169981,
       "offset": [
-        -490.76238676343974,
-        1004.2788244026192
+        -708.4642936984052,
+        859.253787709515
       ]
     },
-    "frontendVersion": "1.24.4",
+    "frontendVersion": "1.25.11",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,

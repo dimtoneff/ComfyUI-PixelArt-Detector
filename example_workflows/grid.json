@@ -1,8 +1,8 @@
 {
   "id": "ed847ff9-1353-456d-9812-05bd8736fb7b",
   "revision": 0,
-  "last_node_id": 9,
-  "last_link_id": 15,
+  "last_node_id": 10,
+  "last_link_id": 18,
   "nodes": [
     {
       "id": 5,
@@ -22,7 +22,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 14
+          "link": 18
         }
       ],
       "outputs": [],
@@ -32,70 +32,6 @@
         "Node name for S&R": "PreviewImage"
       },
       "widgets_values": []
-    },
-    {
-      "id": 8,
-      "type": "PixelArtDetectorConverter",
-      "pos": [
-        475.7195739746094,
-        235.441650390625
-      ],
-      "size": [
-        400,
-        300
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 15
-        },
-        {
-          "name": "paletteList",
-          "shape": 7,
-          "type": "LIST",
-          "link": 13
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "shape": 6,
-          "type": "IMAGE",
-          "links": [
-            14
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui-pixelart-detector",
-        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
-        "Node name for S&R": "PixelArtDetectorConverter"
-      },
-      "widgets_values": [
-        "GAMEBOY",
-        512,
-        512,
-        "Image.quantize",
-        2,
-        false,
-        "Image.quantize",
-        128,
-        true,
-        "MAXCOVERAGE",
-        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n",
-        "RANDOM_CENTERS",
-        10,
-        10,
-        "EUCLIDEAN_SQUARE",
-        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
-        false,
-        0.02,
-        "none"
-      ]
     },
     {
       "id": 2,
@@ -118,7 +54,7 @@
           "type": "IMAGE",
           "slot_index": 0,
           "links": [
-            15
+            17
           ]
         },
         {
@@ -146,7 +82,7 @@
       ],
       "size": [
         400,
-        280
+        334
       ],
       "flags": {},
       "order": 1,
@@ -157,7 +93,7 @@
           "name": "paletteList",
           "type": "LIST",
           "links": [
-            13
+            16
           ]
         }
       ],
@@ -175,32 +111,98 @@
         "#fff",
         7,
         true,
-        3
+        3,
+        ""
+      ]
+    },
+    {
+      "id": 10,
+      "type": "PixelArtDetectorConverter",
+      "pos": [
+        500,
+        270
+      ],
+      "size": [
+        400,
+        324
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 17
+        },
+        {
+          "name": "paletteList",
+          "shape": 7,
+          "type": "LIST",
+          "link": 16
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "shape": 6,
+          "type": "IMAGE",
+          "links": [
+            18
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-pixelart-detector",
+        "ver": "51cf5d2390b15f00e0005609f8cd9a5c8c968486",
+        "Node name for S&R": "PixelArtDetectorConverter"
+      },
+      "widgets_values": [
+        "GAMEBOY",
+        512,
+        512,
+        "contain",
+        "Image.quantize",
+        2,
+        false,
+        "Image.quantize",
+        128,
+        true,
+        "MAXCOVERAGE",
+        "OpenCV.kmeans: only when reducing is enabled.\nRANDOM_CENTERS: Fast but doesn't guarantee same labels for the same image.\nPP_CENTERS: Slow but will yield optimum and consistent results for same input image.\nattempts: to run criteria_max_iterations so it gets the best labels. Increasing this value will slow down the runtime a lot, but improves the colors!\n",
+        "RANDOM_CENTERS",
+        10,
+        10,
+        "EUCLIDEAN_SQUARE",
+        "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
+        false,
+        0.02,
+        "none"
       ]
     }
   ],
   "links": [
     [
-      13,
+      16,
       9,
       0,
-      8,
+      10,
       1,
       "LIST"
     ],
     [
-      14,
-      8,
+      17,
+      2,
       0,
-      5,
+      10,
       0,
       "IMAGE"
     ],
     [
-      15,
-      2,
+      18,
+      10,
       0,
-      8,
+      5,
       0,
       "IMAGE"
     ]
@@ -209,13 +211,13 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.8478082732568298,
+      "scale": 0.7707347938698456,
       "offset": [
-        116.56051866754301,
-        427.6562159066766
+        197.08546870512617,
+        268.9349645979441
       ]
     },
-    "frontendVersion": "1.24.4",
+    "frontendVersion": "1.25.11",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,

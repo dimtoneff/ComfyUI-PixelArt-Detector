@@ -1,8 +1,8 @@
 {
   "id": "2ba847d7-15bf-49db-8637-d0fe397fa953",
   "revision": 0,
-  "last_node_id": 137,
-  "last_link_id": 261,
+  "last_node_id": 138,
+  "last_link_id": 264,
   "nodes": [
     {
       "id": 14,
@@ -269,7 +269,8 @@
         true,
         true,
         512,
-        512
+        512,
+        "contain"
       ]
     },
     {
@@ -525,7 +526,7 @@
           "type": "IMAGE",
           "slot_index": 0,
           "links": [
-            259
+            263
           ]
         }
       ],
@@ -603,7 +604,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 261
+          "link": 264
         }
       ],
       "outputs": [],
@@ -619,48 +620,6 @@
         "disabled",
         "enabled",
         "output"
-      ]
-    },
-    {
-      "id": 133,
-      "type": "PixelArtLoadPalettes",
-      "pos": [
-        1069,
-        232
-      ],
-      "size": [
-        400,
-        280
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "paletteList",
-          "type": "LIST",
-          "slot_index": 0,
-          "links": [
-            260
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfyui-pixelart-detector",
-        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
-        "Node name for S&R": "PixelArtLoadPalettes"
-      },
-      "widgets_values": [
-        "31-1x.png",
-        false,
-        "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'",
-        40,
-        "#f40e12",
-        "#fff",
-        6,
-        true,
-        3
       ]
     },
     {
@@ -771,7 +730,7 @@
         "Node name for S&R": "KSampler"
       },
       "widgets_values": [
-        968240540624741,
+        560646316934830,
         "randomize",
         25,
         8,
@@ -781,15 +740,15 @@
       ]
     },
     {
-      "id": 137,
+      "id": 138,
       "type": "PixelArtDetectorConverter",
       "pos": [
-        1529.5343017578125,
-        -1.9736723899841309
+        1530,
+        -20
       ],
       "size": [
         400,
-        300
+        420
       ],
       "flags": {},
       "order": 19,
@@ -798,13 +757,13 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 259
+          "link": 263
         },
         {
           "name": "paletteList",
           "shape": 7,
           "type": "LIST",
-          "link": 260
+          "link": 262
         }
       ],
       "outputs": [
@@ -813,22 +772,23 @@
           "shape": 6,
           "type": "IMAGE",
           "links": [
-            261
+            264
           ]
         }
       ],
       "properties": {
         "cnr_id": "comfyui-pixelart-detector",
-        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
+        "ver": "51cf5d2390b15f00e0005609f8cd9a5c8c968486",
         "Node name for S&R": "PixelArtDetectorConverter"
       },
       "widgets_values": [
         "GAMEBOY",
         512,
         512,
+        "contain",
         "Image.quantize",
         2,
-        false,
+        true,
         "Image.quantize",
         128,
         true,
@@ -839,7 +799,7 @@
         10,
         "EUCLIDEAN_SQUARE",
         "Clean up colors: Iterate and eliminate pixels while there was none left covering less than the 'cleanup_pixels_threshold' of the image.\nOptionally, enable the 'reduce colors' option, which runs before this cleanup. Good cleanup_threshold values: between .01 & .05",
-        false,
+        true,
         0.02,
         "none"
       ]
@@ -856,7 +816,7 @@
         100
       ],
       "flags": {},
-      "order": 8,
+      "order": 7,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -890,10 +850,53 @@
         "Node name for S&R": "CheckpointLoaderSimple"
       },
       "widgets_values": [
-        "SDXL\\boltningRealistic_v10_Lightning.safetensors"
+        "SDXL\\sdxlUnstableDiffusers_v11Rundiffusion.safetensors"
       ],
       "color": "#323",
       "bgcolor": "#535"
+    },
+    {
+      "id": 133,
+      "type": "PixelArtLoadPalettes",
+      "pos": [
+        1069,
+        232
+      ],
+      "size": [
+        400,
+        136
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "paletteList",
+          "type": "LIST",
+          "slot_index": 0,
+          "links": [
+            262
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-pixelart-detector",
+        "ver": "fff89dd5649a01302e33c956c6ba285eb9826375",
+        "Node name for S&R": "PixelArtLoadPalettes"
+      },
+      "widgets_values": [
+        "31-1x.png",
+        false,
+        "Grid settings. The values will be forwarded to the 'PixelArt Palette Converter to render the grid with all palettes from this node.'",
+        40,
+        "#f40e12",
+        "#fff",
+        6,
+        true,
+        3,
+        ""
+      ]
     }
   ],
   "links": [
@@ -1042,24 +1045,24 @@
       "IMAGE"
     ],
     [
-      259,
-      131,
-      0,
-      137,
-      0,
-      "IMAGE"
-    ],
-    [
-      260,
+      262,
       133,
       0,
-      137,
+      138,
       1,
       "LIST"
     ],
     [
-      261,
-      137,
+      263,
+      131,
+      0,
+      138,
+      0,
+      "IMAGE"
+    ],
+    [
+      264,
+      138,
       0,
       109,
       0,
@@ -1071,8 +1074,8 @@
       "id": 1,
       "title": "Base Prompt",
       "bounding": [
-        381,
-        -215,
+        380,
+        -210,
         252,
         361
       ],
@@ -1084,8 +1087,8 @@
       "id": 2,
       "title": "Text Prompts",
       "bounding": [
-        -81,
-        -264,
+        -80,
+        -260,
         339,
         622
       ],
@@ -1110,13 +1113,13 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.665082654990136,
+      "scale": 0.5496550867687078,
       "offset": [
-        204.97449043011508,
-        1487.6605691737277
+        601.8047248167526,
+        1603.9705721343055
       ]
     },
-    "frontendVersion": "1.24.4",
+    "frontendVersion": "1.25.11",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
