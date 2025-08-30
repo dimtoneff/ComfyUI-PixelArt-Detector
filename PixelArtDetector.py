@@ -38,11 +38,40 @@ import warnings
 
 from comfy.cli_args import args
 from enum import Enum
-
+from PIL import Image
+from PIL import ImageOps
 from .pixelUtils import *
 
 if not hasattr(np, "warnings"):
     np.warnings = warnings
+
+
+def downscale_to_1x_keep_ar(img: Image.Image) -> Image.Image:
+    """
+    Use pixel_detect's idea of 'how much to downscale', but force a single
+    uniform integer scale so aspect ratio is preserved.
+    """
+    ow, oh = img.size
+
+    # What pixel_detect *would* downscale to (possibly with non-uniform scale)
+    ds = pixel_detect(img)
+    dw, dh = ds.size
+
+    # If nothing changed or something odd, just return original
+    if dw <= 0 or dh <= 0 or (dw == ow and dh == oh):
+        return img
+
+    # Derive the per-axis factors it effectively used
+    sx = max(1, round(ow / dw))
+    sy = max(1, round(oh / dh))
+
+    # Force a single integer scale (pick the stronger downscale to avoid upscaling)
+    s = max(sx, sy)
+
+    # Compute new size with preserved AR (integer NEAREST to keep pixel edges crisp)
+    nw = max(1, ow // s)
+    nh = max(1, oh // s)
+    return img.resize((nw, nh), Image.Resampling.NEAREST)
 
 
 class GRID_SETTING(Enum):
@@ -561,8 +590,7 @@ class PixelArtDetectorConverter:
 
             # resize if image needs downscale
             if not resizeBefore and not isGrid and resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
-                PILOutput = PILOutput.resize(
-                    (resize_w, resize_h), resample=Image.Resampling.NEAREST)
+                PILOutput = ImageOps.contain(PILOutput, (resize_w, resize_h), Image.Resampling.NEAREST)
 
             # Convert to torch.Tensor
             PILOutput = np.array(PILOutput).astype(np.float32) / 255.0
@@ -634,7 +662,7 @@ class PixelArtDetectorToImage:
             start = round(time.time() * 1000)
 
             # Find 1:1 pixel scale
-            downscale = pixel_detect(pilImage)
+            downscale = downscale_to_1x_keep_ar(pilImage)
 
             print(
                 f"### {self.CGREEN}[PixelArtDetectorToImage]{self.CEND} Size detected and reduced from {self.CYELLOW}{pilImage.width}{self.CEND}x{self.CYELLOW}{pilImage.height}{self.CEND} to {self.CYELLOW}{downscale.width}{self.CEND}x{self.CYELLOW}{downscale.height}{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds")
@@ -707,7 +735,7 @@ class PixelArtDetectorSave:
             start = round(time.time() * 1000)
 
             # Find 1:1 pixel scale
-            downscale = pixel_detect(pilImage)
+            downscale = downscale_to_1x_keep_ar(pilImage)
 
             print(
                 f"### {self.CGREEN}[PixelArtDetectorSave]{self.CEND} Size detected and reduced from {self.CYELLOW}{pilImage.width}{self.CEND}x{self.CYELLOW}{pilImage.height}{self.CEND} to {self.CYELLOW}{downscale.width}{self.CEND}x{self.CYELLOW}{downscale.height}{self.CEND} in {self.CYELLOW}{round(time.time() * 1000) - start}{self.CEND} milliseconds")
@@ -726,8 +754,7 @@ class PixelArtDetectorSave:
 
             # resize
             if resize_w >= SETTINGS.MIN_RESIZE_TRESHOLD.value and resize_h >= SETTINGS.MIN_RESIZE_TRESHOLD.value:
-                PILOutput = PILOutput.resize(
-                    (resize_w, resize_h), resample=Image.Resampling.NEAREST)
+                PILOutput = ImageOps.contain(PILOutput, (resize_w, resize_h), Image.Resampling.NEAREST)
 
             results.append(self.saveImage(
                 PILOutput,
