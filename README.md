@@ -1,4 +1,4 @@
-# ComfyUI PixelArt Detector v1.6.1
+# ComfyUI PixelArt Detector v1.7.0
 
 Generate, downscale, change palletes and restore pixel art images with SDXL.
 
@@ -9,6 +9,17 @@ Generate, downscale, change palletes and restore pixel art images with SDXL.
 ![](./examples/community/image-039.jpg) ![](./examples/community/image-040.jpg) ![](./examples/community/image-042.jpg) ![](./examples/community/image-041.jpg) ![](./examples/community/image-044.jpg)
 
 Save a picture as Webp (+optional JPEG) file in Comfy + Workflow loading.
+
+**Update 1.7.0**:
+
+All changes maintain backward compatibility while providing users **with more control over image resizing behavior**:
+
+* Added a wrapper for the Astropulse's algo making sure no distortions happen with uncommon ARs by enforcing a single uniform factor, the geometry is preserved and no axis is stretched differently
+* Added a reusable resize_image function in pixelUtils.py that supports three resize modes:
+  * "contain": Maintains aspect ratio with shrinking and fits within specified dimensions (default)
+  * "fit": Maintains aspect ratio but crops to fill entire area
+  * "stretch": Stretches to exact dimensions, may distort image in uncommon aspect ratios
+* Updated `PixelArtDetectorConverter`, `PixelArtDetectorConverter` and `PixelArtDetectorSave` classes to use the new resize_image function
 
 **Update 1.6.1**:
 
